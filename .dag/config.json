@@ -1,0 +1,17 @@
+{
+  "adapters": {
+    "documentation": {
+      "type": "local",
+      "config": {
+        "adrPath": "./.dag/docs/adr"
+      }
+    },
+    "issue-tracking": {
+      "type": "local",
+      "config": {
+        "project": "DGR",
+        "ticketPath": "./.dag/docs/tickets"
+      }
+    }
+  }
+}
