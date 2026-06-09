@@ -49,6 +49,11 @@ cd dagger
 go mod tidy
 ```
 
+Run migrations:
+```
+make migrate
+```
+
 Run:
 ```
 make run

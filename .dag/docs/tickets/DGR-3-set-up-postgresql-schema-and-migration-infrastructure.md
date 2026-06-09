@@ -1,7 +1,7 @@
 ---
 id: DGR-3
 issueType: task
-status: open
+status: done
 blockedBy:
   - DGR-2
 tags:

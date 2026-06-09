@@ -1,0 +1,93 @@
+CREATE TABLE IF NOT EXISTS workspaces (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS workspace_members (
+    workspace_id INTEGER NOT NULL REFERENCES workspaces(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    role TEXT NOT NULL DEFAULT 'member',
+    PRIMARY KEY (workspace_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    workspace_id INTEGER NOT NULL REFERENCES workspaces(id),
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    next_display_number INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS relations (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS docs (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    display_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT,
+    status TEXT NOT NULL DEFAULT 'proposed',
+    parent_id INTEGER REFERENCES docs(id),
+    group_id TEXT,
+    project_id INTEGER NOT NULL REFERENCES projects(id),
+    workspace_id INTEGER NOT NULL REFERENCES workspaces(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS issues (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    display_id TEXT NOT NULL,
+    type TEXT NOT NULL,
+    title TEXT NOT NULL,
+    body TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    parent_id INTEGER REFERENCES issues(id),
+    project_id INTEGER NOT NULL REFERENCES projects(id),
+    workspace_id INTEGER NOT NULL REFERENCES workspaces(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS doc_issues (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    doc_id INTEGER NOT NULL REFERENCES docs(id),
+    issue_id INTEGER NOT NULL REFERENCES issues(id),
+    relationship_type TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS issue_relations (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    source_issue_id INTEGER NOT NULL REFERENCES issues(id),
+    relation_id INTEGER NOT NULL REFERENCES relations(id),
+    target_issue_id INTEGER NOT NULL REFERENCES issues(id)
+);
+
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    key_hash TEXT NOT NULL,
+    prefix TEXT NOT NULL,
+    name TEXT NOT NULL,
+    workspace_id INTEGER NOT NULL REFERENCES workspaces(id),
+    project_id INTEGER REFERENCES projects(id),
+    created_by INTEGER REFERENCES users(id),
+    last_used_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMPTZ
+);
