@@ -1,7 +1,7 @@
 ---
 id: DGR-2
 issueType: task
-status: open
+status: done
 dependsOn: []
 tags:
   - phase-1

@@ -1,0 +1,12 @@
+# Binaries
+/api
+/tmp/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Environment
+.env
+.env.local

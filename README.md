@@ -37,3 +37,26 @@ Humans will never be replaced. Your users need a product or service created with
 ## Agent interface
 
 Agents interface via the Daggeer AI secure API. It gets a focused version of the ticket or doc, complete with all the context it needs to be up to speed, served as raw Markdown.
+
+## Development
+
+Prerequisites: Go 1.26+
+
+Setup:
+```
+git clone <repo>
+cd dagger
+go mod tidy
+```
+
+Run:
+```
+make run
+# or: go run ./cmd/api
+```
+
+Health check:
+```
+curl http://localhost:8080/healthz
+# → OK
+```
