@@ -2,7 +2,7 @@
 id: DGR-2
 issueType: task
 status: done
-dependsOn: []
+blockedBy: []
 tags:
   - phase-1
   - go

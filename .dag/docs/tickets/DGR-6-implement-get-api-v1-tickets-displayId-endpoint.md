@@ -9,9 +9,6 @@ tags:
   - context-assembly
 parent: DGR-1
 blockedBy:
-  - DGR-2
-  - DGR-3
-  - DGR-4
   - DGR-5
 ---
 

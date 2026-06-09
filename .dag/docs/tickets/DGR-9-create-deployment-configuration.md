@@ -9,7 +9,6 @@ tags:
   - supabase
 parent: DGR-1
 blockedBy:
-  - DGR-2
   - DGR-3
 ---
 

@@ -2,7 +2,7 @@
 id: DGR-3
 issueType: task
 status: open
-dependsOn:
+blockedBy:
   - DGR-2
 tags:
   - phase-1

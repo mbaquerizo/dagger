@@ -8,10 +8,6 @@ tags:
   - agent-integration
 parent: DGR-1
 blockedBy:
-  - DGR-2
-  - DGR-3
-  - DGR-4
-  - DGR-5
   - DGR-6
   - DGR-7
 ---
