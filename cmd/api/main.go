@@ -1,13 +1,36 @@
 package main
 
 import (
-	"net/http"
-	"github.com/go-chi/chi/v5"
 	"log"
+	"net/http"
+	"os"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
+	"github.com/mbaquerizo/dagger/internal/auth"
+	"github.com/mbaquerizo/dagger/internal/db"
 )
 
 func main() {
+	godotenv.Load()
+
+	databaseURL := os.Getenv("DB_URL")
+
+	if databaseURL == "" {
+		log.Fatal("DB_URL environment variable is required")
+	}
+
+	pool, err := db.Connect(databaseURL)
+
+	if err != nil {
+		log.Fatalf("connecting to database: %v", err)
+	}
+
+	defer pool.Close()
+
 	r := chi.NewRouter()
+
+	r.Use(auth.NewMiddleware(pool))
 
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

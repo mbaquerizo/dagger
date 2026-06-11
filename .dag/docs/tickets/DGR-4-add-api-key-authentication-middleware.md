@@ -1,30 +1,28 @@
 ---
 id: DGR-4
 issueType: task
-status: open
+status: done
 tags:
   - phase-1
   - auth
   - api-keys
 parent: DGR-1
-blockedBy:
-  - DGR-3
 ---
 
 # Add API key authentication middleware
 
 ## Description
 
-Add API key authentication to the Go API server. Every request (except health check) must include an `Authorization: Bearer dgr_...` header. Keys are hashed with bcrypt and stored in the `api_keys` table in Supabase. This protects all endpoints from day one.
+Add API key authentication to the Go API server. Every request (except health check) must include an `Authorization: Bearer dgr_...` header. Keys are hashed with SHA-256 and stored in the `api_keys` table. This protects all endpoints from day one.
 
 ## Acceptance criteria
 
 1. Auth middleware extracts `Bearer` token from `Authorization` header
-2. Middleware looks up key hash in `api_keys` table and verifies with bcrypt
+2. Middleware looks up key hash in `api_keys` table and verifies via SHA-256 hash lookup
 3. Requests with missing or invalid keys return `401 Unauthorized`
 4. Valid requests proceed with workspace context attached to the request
 5. Health check endpoint (`GET /healthz`) is excluded from auth
-6. A seed API key is generated for development (set via env var or printed on first startup)
+6. A seed API key is generated via a separate CLI tool: `make seedkey ARGS="--workspace-id=<id>"`
 7. Key secrets follow the prefix format `dgr_` for identification
 
 ## Scenarios
@@ -54,11 +52,16 @@ Scenario: Health check bypasses auth
 
 ## Technical notes
 
-- Use `golang.org/x/crypto/bcrypt` for key hashing
+- Use `crypto/sha256` (stdlib) for key hashing — no `golang.org/x/crypto` dependency needed
 - Keys are generated as random 32-byte values, base64-encoded, prefixed `dgr_`
-- Store only `key_hash` (bcrypt), `prefix` (first 8 chars), never the raw key
-- Middleware attaches `workspace_id` to `context.Context` for downstream handlers
-- Seed key for dev can be set via `DAGGER_DEV_API_KEY` env var or auto-generated on startup
+- Store only `key_hash` (SHA-256 hex), `prefix` (first 8 chars), never the raw key
+- First 8 chars stored as `prefix` for indexed lookup; full hash comparison done in Go
+- No server-side pepper, no salt — SHA-256 is deterministic; a unique raw key is the only secret
+- Server validates keys only, never creates them — no startup side effects
+- Key generation is via a separate CLI tool at `cmd/seedkey`
+- Middleware attaches `workspace_id`, `project_id`, and `key_id` to `context.Context`
+- Middleware accepts a `keyQuerier` interface, testable without a real database via pgxmock
+- Health check endpoint (`GET /healthz`) bypasses auth
 
 ## Related docs
 

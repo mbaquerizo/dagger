@@ -1,4 +1,4 @@
-.PHONY: build run test lint migrate
+.PHONY: build run test lint migrate seedkey
 
 build:
 	go build ./cmd/api
@@ -14,3 +14,6 @@ lint:
 
 migrate:
 	go run ./cmd/migrate
+
+seedkey:
+	go run ./cmd/seedkey $(ARGS)
