@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mbaquerizo/dagger/internal/auth"
 	"github.com/mbaquerizo/dagger/internal/db"
+	"github.com/mbaquerizo/dagger/internal/publish"
 )
 
 func main() {
@@ -18,6 +19,12 @@ func main() {
 
 	if databaseURL == "" {
 		log.Fatal("DB_URL environment variable is required")
+	}
+
+	baseURL := os.Getenv("BASE_URL")
+
+	if baseURL == "" {
+		log.Fatalf("BASE_URL environment variable is required")
 	}
 
 	pool, err := db.Connect(databaseURL)
@@ -36,6 +43,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
+
+	r.Post("/api/v1/publish", publish.NewHandler(pool, baseURL))
 
 	log.Println("server starting on :8080")
 

@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS issue_types (
+  id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO issue_types (name) VALUES
+  ('epic'),
+  ('story'),
+  ('task'),
+  ('bug'),
+  ('spike');
+
+ALTER TABLE issues
+ADD COLUMN issue_type_id INTEGER NOT NULL REFERENCES issue_types(id) DEFAULT 1;
+
+ALTER TABLE issues
+DROP COLUMN IF EXISTS type;
+
+ALTER TABLE docs
+DROP COLUMN IF EXISTS group_id;
+
