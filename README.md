@@ -36,7 +36,7 @@ Humans will never be replaced. Your users need a product or service created with
 
 ## Agent interface
 
-Agents interface via the Daggeer AI secure API. It gets a focused version of the ticket or doc, complete with all the context it needs to be up to speed, served as raw Markdown.
+Agents interface via the Dagger AI secure API. It gets a focused version of the ticket or doc, complete with all the context it needs to be up to speed, served as raw Markdown.
 
 ## Development
 

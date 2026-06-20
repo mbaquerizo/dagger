@@ -5,14 +5,14 @@ status: open
 tags:
   - phase-1
   - api
-  - tickets
+  - issues
   - context-assembly
 parent: DGR-1
 blockedBy:
   - DGR-5
 ---
 
-# Implement GET /api/v1/tickets/:displayId endpoint
+# Implement GET /api/v1/agent/issues/:displayId endpoint
 
 ## Description
 
@@ -20,26 +20,27 @@ As an AI agent, I want to fetch a ticket by its display ID and receive full cont
 
 ## Acceptance criteria
 
-1. `GET /api/v1/tickets/:displayId` accepts display IDs like `DGR-42`
+1. `GET /api/v1/agent/issues/:displayId` accepts display IDs like `DGR-42`
 2. Returns optimized markdown with ticket header (title, status, type, parent)
 3. Includes "Linked Context" section with all related docs (ADRs, CEs, pitches)
 4. Includes parent epic info and child subtask titles
 5. Omits internal metadata (workspace IDs, timestamps) for token efficiency
 6. Returns `404` for unknown display IDs
-7. Protected by API key auth
+7. `GET /api/v1/agent/issues?status=open` returns JSON list of issues matching the filter (no context assembly)
+8. Protected by API key auth
 
 ## Scenarios
 
 ```gherkin
 Scenario: Fetch existing ticket
   Given a ticket with displayId "DGR-42" exists, linked to an ADR and a CE
-  When I GET /api/v1/tickets/DGR-42
+  When I GET /api/v1/agent/issues/DGR-42
   Then the response is 200
   And the body is markdown with the ticket header and linked ADR/CE
 
 Scenario: Ticket not found
   Given no ticket has displayId "DGR-999"
-  When I GET /api/v1/tickets/DGR-999
+  When I GET /api/v1/agent/issues/DGR-999
   Then the response is 404
 ```
 

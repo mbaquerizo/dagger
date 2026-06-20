@@ -9,8 +9,8 @@
 - **Go API server** — HTTP service with PostgreSQL backend
 - **Database schema** — based on the DB adapter design doc (docs, issues, relationships, tags)
 - **`POST /api/v1/publish`** — ingest docs and tickets from the DAG plugin
-- **`GET /api/v1/tickets/:id`** — return ticket + all linked context as a single optimized markdown document
-- **`GET /api/v1/documents/:id`** — return individual doc
+- **`GET /api/v1/agent/issues/:id`** — return issue + all linked context as a single optimized markdown document
+- **`GET /api/v1/agent/docs/:id`** — return individual doc as markdown
 - **API key authentication** — hashed keys stored in DB, scoped to projects
 - **MCP server** — thin Go server wrapping the REST API for Claude Code / OpenCode integration
 - **DAG "dagger" adapter** — new adapter type in the DAG plugin repo that POSTs to Dagger's API

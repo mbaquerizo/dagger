@@ -4,12 +4,12 @@
 
 The primary interface for agents. Returns optimized markdown with full context assembled.
 
-### `GET /api/v1/tickets/:displayId`
+### `GET /api/v1/agent/issues/:displayId`
 
-Returns a single markdown document containing the ticket and all linked context.
+Returns a single markdown document containing the issue and all linked context.
 
 ```
-GET /api/v1/tickets/DG-42
+GET /api/v1/agent/issues/DG-42
 Authorization: Bearer dgr_abc123...
 ```
 
@@ -70,18 +70,18 @@ Redis-backed with 1-second precision.
 ```
 
 The assembly engine resolves:
-1. The ticket itself (`issues` table)
+1. The issue itself (`issues` table)
 2. Linked docs via `doc_issues` (ADR, code exploration, pitch)
 3. Parent issue via `parent_id` (epic-level context)
 4. Child issues (sub-tasks, for the "big picture")
 
-### `GET /api/v1/documents/:id`
+### `GET /api/v1/agent/docs/:id`
 
-Returns a single document by Dagger ID or external ID.
+Returns a single document as optimized markdown.
 
-### `GET /api/v1/tickets?status=open`
+### `GET /api/v1/agent/issues?status=open`
 
-List tickets with optional filters. Returns minimal metadata (no context assembly).
+List issues with optional filters. Returns JSON with minimal metadata (no context assembly).
 
 ## Interface: MCP Server
 
@@ -99,10 +99,10 @@ dagger-mcp --api-key dgr_abc123
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
-| `get_ticket` | Fetch ticket with full context | `ticket_id: string` (e.g. `DG-42`) |
-| `search_docs` | Search across docs and tickets | `query: string`, `limit?: number` |
-| `list_tickets` | List tickets by status | `status?: string`, `limit?: number` |
-| `get_document` | Fetch individual document | `doc_id: string` |
+| `get_issue` | Fetch issue with full context | `issue_id: string` (e.g. `DG-42`) |
+| `search_docs` | Search across docs and issues | `query: string`, `limit?: number` |
+| `list_issues` | List issues by status | `status?: string`, `limit?: number` |
+| `get_doc` | Fetch individual document | `doc_id: string` |
 
 ### User Configuration
 
@@ -119,7 +119,7 @@ In the agent's MCP config:
 }
 ```
 
-Then in conversation: *"Work on DG-42"* → agent calls `get_ticket("DG-42")` → receives full context → generates code.
+Then in conversation: *"Work on DG-42"* → agent calls `get_issue("DG-42")` → receives full context → generates code.
 
 ## Interface: Web UI (Phase 2)
 
@@ -127,7 +127,7 @@ For humans who want to read the same context the agent sees. The ticket detail v
 
 ## Context Assembly Engine
 
-The core value prop. Given a ticket ID:
+The core value prop. Given an issue display ID:
 
 1. **Fetch** the issue from `issues` table
 2. **Traverse** `doc_issues` to find linked docs (type-filter: ADR, CE, pitch)
