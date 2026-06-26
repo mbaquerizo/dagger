@@ -9,6 +9,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/mbaquerizo/dagger/internal/auth"
 	"github.com/mbaquerizo/dagger/internal/db"
+	"github.com/mbaquerizo/dagger/internal/issues"
 	"github.com/mbaquerizo/dagger/internal/publish"
 )
 
@@ -45,6 +46,10 @@ func main() {
 	})
 
 	r.Post("/api/v1/publish", publish.NewHandler(pool, baseURL))
+
+	r.Get("/api/v1/agent/issues/{displayId}", issues.NewGetIssueHandler(pool))
+
+	r.Get("/api/v1/issues", issues.NewListIssuesHandler(pool))
 
 	log.Println("server starting on :8080")
 

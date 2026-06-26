@@ -1,7 +1,7 @@
 ---
 id: DGR-6
 issueType: story
-status: open
+status: done
 tags:
   - phase-1
   - api
