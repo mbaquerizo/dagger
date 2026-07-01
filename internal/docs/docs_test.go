@@ -19,10 +19,10 @@ func TestGetDoc_ByDisplayID_Success(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("DGR-3", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "p_display_id", "p_title"}).
-			AddRow(5, "DGR-3", "adr", "Test ADR", &body, "approved", nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(5, "DGR-3", "adr", "Test ADR", &body, "approved", 1, 1, nil, nil, nil))
 
-	doc, err := GetDoc(context.Background(), mockPool, "DGR-3", 1)
+	doc, err := GetDoc(context.Background(), mockPool, "DGR-3", 1, nil)
 	if err != nil {
 		t.Fatalf("GetDoc returned error: %v", err)
 	}
@@ -62,9 +62,9 @@ func TestGetDoc_NotFound(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("DGR-999", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "p_display_id", "p_title"}))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}))
 
-	doc, err := GetDoc(context.Background(), mockPool, "DGR-999", 1)
+	doc, err := GetDoc(context.Background(), mockPool, "DGR-999", 1, nil)
 	if err == nil {
 		t.Fatal("expected ErrDocNotFound, got nil")
 	}
@@ -85,10 +85,10 @@ func TestGetDoc_WithNilBody(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("CE-1", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "p_display_id", "p_title"}).
-			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 1, nil, nil, nil))
 
-	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1)
+	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1, nil)
 	if err != nil {
 		t.Fatalf("GetDoc returned error: %v", err)
 	}
@@ -103,5 +103,64 @@ func TestGetDoc_WithNilBody(t *testing.T) {
 	}
 	if doc.Parent != nil {
 		t.Errorf("expected nil parent, got %v", doc.Parent)
+	}
+}
+
+func TestGetDoc_WithProjectIDMismatch(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	projectID := 2
+
+	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
+		WithArgs("CE-1", 1).
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 1, nil, nil, nil))
+
+	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1, &projectID)
+	if err == nil {
+		t.Fatal("expected ErrProjectIDMismatch, but got nil")
+	}
+	if !errors.Is(err, ErrProjectIDMismatch) {
+		t.Errorf("expected ErrProjectIDMismatch, buy got %v", err)
+	}
+	if doc != nil {
+		t.Errorf("expected nil doc, but got %v", doc)
+	}
+}
+
+func TestGetDoc_WithParentProjectIDMismatch(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	projectID := 2
+
+	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
+		WithArgs("CE-1", 1).
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 2, nil, nil, nil))
+
+	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1, &projectID)
+
+	if err != nil {
+		t.Fatalf("GetDoc returned error: %v", err)
+	}
+
+	if doc == nil {
+		t.Fatal("expected non-nil Doc")
+	}
+
+	if doc.ProjectID != 2 {
+		t.Errorf("expected project id 2, but got %d", doc.ProjectID)
+	}
+
+	if doc.Parent != nil {
+		t.Errorf("expected nil parent, but got %v", doc.Parent)
 	}
 }

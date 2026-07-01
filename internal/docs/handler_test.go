@@ -23,8 +23,8 @@ func TestHandler_GetDoc_Success(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("DGR-3", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "p_display_id", "p_title"}).
-			AddRow(5, "DGR-3", "adr", "Test ADR", &body, "approved", nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(5, "DGR-3", "adr", "Test ADR", &body, "approved", 1, 1, nil, nil, nil))
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/agent/docs/DGR-3", nil)
 	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
@@ -68,7 +68,7 @@ func TestHandler_GetDoc_NotFound(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("DGR-999", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status"}))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}))
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/agent/docs/DGR-999", nil)
 	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))

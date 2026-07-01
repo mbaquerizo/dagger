@@ -12,12 +12,13 @@ type poolIface interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
 
-func GetDoc(ctx context.Context, pool poolIface, displayID string, workspaceID int) (*Doc, error) {
+func GetDoc(ctx context.Context, pool poolIface, displayID string, workspaceID int, authProjectID *int) (*Doc, error) {
 	var doc Doc
 	var parentDisplayID, parentTitle *string
+	var parentProjectID *int
 
 	err := pool.QueryRow(ctx, `
-		SELECT d.id, d.display_id, d.type, d.title, d.body, d.status, p.display_id, p.title
+		SELECT d.id, d.display_id, d.type, d.title, d.body, d.status, d.workspace_id, d.project_id, p.project_id, p.display_id, p.title
 		FROM docs d
 		LEFT JOIN docs p ON p.id = d.parent_id
 		WHERE d.display_id = $1 AND d.workspace_id = $2
@@ -28,6 +29,9 @@ func GetDoc(ctx context.Context, pool poolIface, displayID string, workspaceID i
 		&doc.Title,
 		&doc.Body,
 		&doc.Status,
+		&doc.WorkspaceID,
+		&doc.ProjectID,
+		&parentProjectID,
 		&parentDisplayID,
 		&parentTitle,
 	)
@@ -40,7 +44,11 @@ func GetDoc(ctx context.Context, pool poolIface, displayID string, workspaceID i
 		return nil, fmt.Errorf("querying doc: %w", err)
 	}
 
-	if parentDisplayID != nil {
+	if authProjectID != nil && *authProjectID != doc.ProjectID {
+		return nil, ErrProjectIDMismatch
+	}
+
+	if authProjectID != nil && parentProjectID != nil && *authProjectID == *parentProjectID && parentDisplayID != nil {
 		doc.Parent = &ParentDoc{
 			DisplayID: *parentDisplayID,
 			Title:     *parentTitle,

@@ -10,13 +10,6 @@ import (
 
 func NewGetDocHandler(pool poolIface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		displayID := chi.URLParam(r, "displayId")
-
-		if displayID == "" {
-			http.Error(w, "Missing display ID", http.StatusBadRequest)
-			return
-		}
-
 		workspaceID, ok := auth.WorkspaceIDFromContext(r.Context())
 
 		if !ok {
@@ -24,11 +17,30 @@ func NewGetDocHandler(pool poolIface) http.HandlerFunc {
 			return
 		}
 
-		doc, err := GetDoc(r.Context(), pool, displayID, workspaceID)
+		displayID := chi.URLParam(r, "displayId")
+
+		if displayID == "" {
+			http.Error(w, "Missing display ID", http.StatusBadRequest)
+			return
+		}
+
+		projectID, ok := auth.ProjectIDFromContext(r.Context())
+		var projectIDPtr *int
+
+		if ok {
+			projectIDPtr = &projectID
+		}
+
+		doc, err := GetDoc(r.Context(), pool, displayID, workspaceID, projectIDPtr)
 
 		if err != nil {
 			if errors.Is(err, ErrDocNotFound) {
 				http.Error(w, "Not found", http.StatusNotFound)
+				return
+			}
+
+			if errors.Is(err, ErrProjectIDMismatch) {
+				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
 			}
 

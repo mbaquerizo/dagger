@@ -11,13 +11,6 @@ import (
 
 func NewGetIssueHandler(pool poolIface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		displayID := chi.URLParam(r, "displayId")
-
-		if displayID == "" {
-			http.Error(w, "Missing display ID", http.StatusBadRequest)
-			return
-		}
-
 		workspaceID, ok := auth.WorkspaceIDFromContext(r.Context())
 
 		if !ok {
@@ -25,11 +18,31 @@ func NewGetIssueHandler(pool poolIface) http.HandlerFunc {
 			return
 		}
 
-		issueContext, err := GetIssueContext(r.Context(), pool, displayID, workspaceID)
+		displayID := chi.URLParam(r, "displayId")
+
+		if displayID == "" {
+			http.Error(w, "Missing display ID", http.StatusBadRequest)
+			return
+		}
+
+		projectID, ok := auth.ProjectIDFromContext(r.Context())
+
+		var projectIDPtr *int
+
+		if ok {
+			projectIDPtr = &projectID
+		}
+
+		issueContext, err := GetIssueContext(r.Context(), pool, displayID, workspaceID, projectIDPtr)
 
 		if err != nil {
 			if errors.Is(err, ErrIssueNotFound) {
 				http.Error(w, "Not found", http.StatusNotFound)
+				return
+			}
+
+			if errors.Is(err, ErrProjectIDMismatch) {
+				http.Error(w, "Forbidden", http.StatusForbidden)
 				return
 			}
 
@@ -47,12 +60,6 @@ func NewGetIssueHandler(pool poolIface) http.HandlerFunc {
 
 func NewListIssuesHandler(pool poolIface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		status := r.URL.Query().Get("status")
-
-		if status == "" {
-			status = "open"
-		}
-
 		workspaceID, ok := auth.WorkspaceIDFromContext(r.Context())
 
 		if !ok {
@@ -60,7 +67,21 @@ func NewListIssuesHandler(pool poolIface) http.HandlerFunc {
 			return
 		}
 
-		issues, err := ListIssues(r.Context(), pool, status, workspaceID)
+		status := r.URL.Query().Get("status")
+
+		if status == "" {
+			status = "open"
+		}
+
+		projectID, ok := auth.ProjectIDFromContext(r.Context())
+
+		var projectIDPtr *int
+
+		if ok {
+			projectIDPtr = &projectID
+		}
+
+		issues, err := ListIssues(r.Context(), pool, status, workspaceID, projectIDPtr)
 
 		if err != nil {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

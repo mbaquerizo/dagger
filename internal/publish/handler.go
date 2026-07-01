@@ -10,6 +10,13 @@ import (
 
 func NewHandler(pool poolIface, baseURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		workspaceID, ok := auth.WorkspaceIDFromContext(r.Context())
+
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
 		var req PublishRequest
 
 		err := json.NewDecoder(r.Body).Decode(&req)
@@ -19,6 +26,18 @@ func NewHandler(pool poolIface, baseURL string) http.HandlerFunc {
 			return
 		}
 
+		projectID, ok := auth.ProjectIDFromContext(r.Context())
+		var projectIDPtr *int
+
+		if ok {
+			if req.ProjectID != projectID {
+				http.Error(w, "Forbidden", http.StatusForbidden)
+				return
+			}
+
+			projectIDPtr = &projectID
+		}
+
 		if errs := Validate(req); len(errs) > 0 {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnprocessableEntity)
@@ -26,14 +45,7 @@ func NewHandler(pool poolIface, baseURL string) http.HandlerFunc {
 			return
 		}
 
-		workspaceID, ok := auth.WorkspaceIDFromContext(r.Context())
-
-		if !ok {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		resp, err := Publish(r.Context(), pool, req, workspaceID, baseURL)
+		resp, err := Publish(r.Context(), pool, req, workspaceID, baseURL, projectIDPtr)
 
 		if err != nil {
 			if strings.Contains(err.Error(), "not found") {

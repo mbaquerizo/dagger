@@ -12,7 +12,7 @@ type poolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 }
 
-func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceID int, baseURL string) (*PublishResponse, error) {
+func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceID int, baseURL string, authProjectID *int) (*PublishResponse, error) {
 	tx, err := pool.Begin(ctx)
 
 	if err != nil {
@@ -65,13 +65,19 @@ func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceI
 	if req.ParentID != nil {
 		var parentExists bool
 
-		err = tx.QueryRow(ctx, fmt.Sprintf(`
+		parentQuery := `
 			SELECT EXISTS(
 				SELECT 1 FROM %s
 				WHERE id = $1
 				AND workspace_id = $2
 			)
-		`, entityType), req.ParentID, workspaceID).Scan(&parentExists)
+		`
+
+		if authProjectID != nil {
+			err = tx.QueryRow(ctx, fmt.Sprintf(parentQuery, entityType)+" AND project_id = $3", req.ParentID, workspaceID, *authProjectID).Scan(&parentExists)
+		} else {
+			err = tx.QueryRow(ctx, fmt.Sprintf(parentQuery, entityType), req.ParentID, workspaceID).Scan(&parentExists)
+		}
 
 		if err != nil {
 			return nil, fmt.Errorf("looking up parent: %w", err)
@@ -140,13 +146,19 @@ func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceI
 	for _, rel := range req.Metadata.Relationships {
 		var targetExists bool
 
-		err = tx.QueryRow(ctx, fmt.Sprintf(`
+		relationshipQuery := `
 			SELECT EXISTS(
 				SELECT 1 FROM %s
 				WHERE id = $1
 				AND workspace_id = $2
 			)
-		`, targetRelationshipTable), rel.TargetID, workspaceID).Scan(&targetExists)
+		`
+
+		if authProjectID != nil {
+			err = tx.QueryRow(ctx, fmt.Sprintf(relationshipQuery, targetRelationshipTable)+" AND project_id = $3", rel.TargetID, workspaceID, *authProjectID).Scan(&targetExists)
+		} else {
+			err = tx.QueryRow(ctx, fmt.Sprintf(relationshipQuery, targetRelationshipTable), rel.TargetID, workspaceID).Scan(&targetExists)
+		}
 
 		if err != nil {
 			return nil, fmt.Errorf("checking relationship target: %w", err)

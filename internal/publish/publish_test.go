@@ -36,7 +36,7 @@ func TestPublish_Doc(t *testing.T) {
 		ProjectID: 1,
 	}
 
-	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err != nil {
 		t.Fatalf("Publish returned an error: %v", err)
@@ -91,7 +91,7 @@ func TestPublish_Issue(t *testing.T) {
 		},
 	}
 
-	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err != nil {
 		t.Fatalf("Publish returned an error: %v", err)
@@ -144,7 +144,7 @@ func TestPublish_DocWithParent(t *testing.T) {
 		ProjectID: 1,
 	}
 
-	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err != nil {
 		t.Fatalf("Publish returned an error: %v", err)
@@ -195,7 +195,7 @@ func TestPublish_InvalidIssueType(t *testing.T) {
 		},
 	}
 
-	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err == nil {
 		t.Errorf("expected error for missing issue type, but got none")
@@ -232,7 +232,7 @@ func TestPublish_MissingParent(t *testing.T) {
 		ProjectID: 1,
 	}
 
-	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err == nil {
 		t.Errorf("expected error for missing parent, but got none")
@@ -284,7 +284,7 @@ func TestPublish_IssueWithRelationships(t *testing.T) {
 		},
 	}
 
-	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err != nil {
 		t.Fatalf("Publish returned an error: %v", err)
@@ -340,7 +340,7 @@ func TestPublish_IssueWithMissingRelationshipTarget(t *testing.T) {
 		},
 	}
 
-	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err == nil {
 		t.Errorf("expected error for missing relationship target, but got none")
@@ -386,7 +386,7 @@ func TestPublish_DocWithRelationships(t *testing.T) {
 		},
 	}
 
-	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err != nil {
 		t.Fatalf("Publish returned an error: %v", err)
@@ -436,7 +436,7 @@ func TestPublish_DocWithMissingRelationshipTarget(t *testing.T) {
 		},
 	}
 
-	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080")
+	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
 
 	if err == nil {
 		t.Errorf("expected error for missing relationship target, but got none")

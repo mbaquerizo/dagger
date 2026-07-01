@@ -120,62 +120,102 @@ func TestHandler_GetIssue_NoWorkspace(t *testing.T) {
 	}
 }
 
-func TestListIssues_Success(t *testing.T) {
+func TestHandler_GetIssue_ScopedTokenSuccess(t *testing.T) {
 	mockPool, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatalf("failed to create mock pool: %v", err)
 	}
 	t.Cleanup(func() { mockPool.Close() })
 
-	parentDisplayID := "EPIC-1"
+	issueBody := "Issue description"
 
-	mockPool.ExpectQuery(`SELECT i.display_id, it.name`).
-		WithArgs("open", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
-			AddRow("DGR-1", "First issue", "open", "story", nil).
-			AddRow("DGR-2", "Second issue", "open", "bug", &parentDisplayID))
+	// Issue query
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
+		WithArgs("DGR-42", 1).
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type_name", "title", "body", "status", "parent_id", "project_id", "workspace_id"}).
+			AddRow(1, "DGR-42", "story", "Test Issue", &issueBody, "open", nil, 1, 1))
 
-	issues, err := ListIssues(context.Background(), mockPool, "open", 1)
-	if err != nil {
-		t.Fatalf("ListIssues returned error: %v", err)
-	}
-	if len(issues) != 2 {
-		t.Fatalf("expected 2 issues, got %d", len(issues))
+	// Linked docs — empty
+	mockPool.ExpectQuery(`SELECT d.id, d.display_id, d.type`).
+		WithArgs(1, 1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status"}))
+
+	// No parent (parent_id is nil), skip
+
+	// Children — empty
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
+		WithArgs(1, 1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type_name", "title", "body", "status", "parent_id", "project_id", "workspace_id"}))
+
+	// Related issues — empty
+	mockPool.ExpectQuery(`SELECT i.display_id, i.title, r.name`).
+		WithArgs(1, 1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "relation_type"}))
+
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/agent/issues/DGR-42", nil)
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r = r.WithContext(auth.WithProjectID(r.Context(), 1))
+
+	chiCtx := chi.NewRouteContext()
+	chiCtx.URLParams.Add("displayId", "DGR-42")
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, chiCtx))
+
+	w := httptest.NewRecorder()
+
+	handler := NewGetIssueHandler(mockPool)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
 	}
 
-	if issues[0].DisplayID != "DGR-1" {
-		t.Errorf("expected DGR-1, got %s", issues[0].DisplayID)
-	}
-	if issues[0].ParentDisplayID != nil {
-		t.Errorf("expected nil parent for first issue, got %v", issues[0].ParentDisplayID)
+	ct := w.Header().Get("Content-Type")
+	if ct != "text/markdown" {
+		t.Errorf("expected Content-Type text/markdown, got %s", ct)
 	}
 
-	if issues[1].DisplayID != "DGR-2" {
-		t.Errorf("expected DGR-2, got %s", issues[1].DisplayID)
+	body := w.Body.String()
+	if body == "" {
+		t.Error("expected non-empty body")
 	}
-	if issues[1].ParentDisplayID == nil || *issues[1].ParentDisplayID != "EPIC-1" {
-		t.Errorf("expected parent EPIC-1, got %v", issues[1].ParentDisplayID)
+	if !strings.Contains(body, "# DGR-42: Test Issue") {
+		t.Errorf("expected header in body, got:\n%s", body)
 	}
+
 }
 
-func TestListIssues_NoResults(t *testing.T) {
+func TestHandler_GetIssue_ScopedTokenProjectIDMismatch(t *testing.T) {
 	mockPool, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatalf("failed to create mock pool: %v", err)
 	}
 	t.Cleanup(func() { mockPool.Close() })
 
-	mockPool.ExpectQuery(`SELECT i.display_id, it.name`).
-		WithArgs("closed", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}))
+	issueBody := "Issue description"
 
-	issues, err := ListIssues(context.Background(), mockPool, "closed", 1)
-	if err != nil {
-		t.Fatalf("ListIssues returned error: %v", err)
+	// Issue query
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
+		WithArgs("DGR-42", 1).
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type_name", "title", "body", "status", "parent_id", "project_id", "workspace_id"}).
+			AddRow(1, "DGR-42", "story", "Test Issue", &issueBody, "open", nil, 1, 1))
+
+	r := httptest.NewRequest(http.MethodGet, "/api/v1/agent/issues/DGR-42", nil)
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r = r.WithContext(auth.WithProjectID(r.Context(), 2))
+
+	chiCtx := chi.NewRouteContext()
+	chiCtx.URLParams.Add("displayId", "DGR-42")
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, chiCtx))
+
+	w := httptest.NewRecorder()
+
+	handler := NewGetIssueHandler(mockPool)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403, got %d", w.Code)
 	}
-	if len(issues) != 0 {
-		t.Errorf("expected 0 issues, got %d", len(issues))
-	}
+
 }
 
 func TestHandler_ListIssues_Success(t *testing.T) {
@@ -250,5 +290,3 @@ func TestHandler_ListIssues_NoWorkspace(t *testing.T) {
 		t.Errorf("expected 401, got %d", w.Code)
 	}
 }
-
-

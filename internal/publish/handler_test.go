@@ -113,3 +113,81 @@ func TestHandler_ValidationError(t *testing.T) {
 		t.Error("expected at least one validation error")
 	}
 }
+
+func TestHandler_WithProjectIDContext(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Errorf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectBegin()
+	mockPool.ExpectQuery(`SELECT slug FROM projects`).
+		WithArgs(2, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"slug"}).AddRow("DGR"))
+	mockPool.ExpectQuery(`UPDATE projects`).
+		WithArgs(2, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"next_display_number"}).AddRow(47))
+	mockPool.ExpectQuery(`INSERT INTO docs`).
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), 2, pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(84))
+	mockPool.ExpectCommit()
+
+	req := PublishRequest{
+		Type:      "adr",
+		Title:     "Test Title",
+		Body:      "Test Body",
+		ProjectID: 2,
+	}
+
+	body, err := json.Marshal(req)
+
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/publish", bytes.NewReader(body))
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r = r.WithContext(auth.WithProjectID(r.Context(), 2))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewHandler(mockPool, "http://localhost:8080")
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusCreated {
+		t.Errorf("expected status code 201, but got %d", w.Code)
+	}
+}
+
+func TestHandler_ForbiddenError(t *testing.T) {
+	req := PublishRequest{
+		Type:      "adr",
+		Title:     "",
+		Body:      "Test Body",
+		ProjectID: 1,
+	}
+
+	body, err := json.Marshal(req)
+
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/publish", bytes.NewReader(body))
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r = r.WithContext(auth.WithProjectID(r.Context(), 2))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewHandler(nil, "http://localhost:8080")
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected status 403, but got %d", w.Code)
+	}
+}

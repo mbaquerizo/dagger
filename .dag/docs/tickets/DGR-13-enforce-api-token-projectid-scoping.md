@@ -1,7 +1,7 @@
 ---
 id: DGR-13
 issueType: story
-status: open
+status: done
 tags:
   - auth
   - security

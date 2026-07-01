@@ -9,20 +9,29 @@ import (
 )
 
 var ErrIssueNotFound = errors.New("issue not found")
+var ErrProjectIDMismatch = errors.New("issue project_id does not match auth context")
 
 type poolIface interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 }
 
-func queryLinkedDocs(ctx context.Context, pool poolIface, issueID int, workspaceID int) ([]LinkedDoc, error) {
+func queryLinkedDocs(ctx context.Context, pool poolIface, issueID int, workspaceID int, authProjectID *int) ([]LinkedDoc, error) {
 	var linkedDocs []LinkedDoc
+	var linkedRows pgx.Rows
+	var err error
 
-	linkedRows, err := pool.Query(ctx, `
+	var baseQuery = `
 		SELECT d.id, d.display_id, d.type, d.title, d.body, d.status FROM docs d
 		JOIN doc_issues di ON d.id = di.doc_id
 		WHERE di.issue_id = $1 AND d.workspace_id = $2
-	`, issueID, workspaceID)
+	`
+
+	if authProjectID != nil {
+		linkedRows, err = pool.Query(ctx, baseQuery+" AND d.project_id = $3", issueID, workspaceID, *authProjectID)
+	} else {
+		linkedRows, err = pool.Query(ctx, baseQuery, issueID, workspaceID)
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("querying for linked docs: %w", err)
@@ -56,29 +65,47 @@ func queryLinkedDocs(ctx context.Context, pool poolIface, issueID int, workspace
 	return linkedDocs, nil
 }
 
-func queryParent(ctx context.Context, pool poolIface, parentID *int, workspaceID int) (*Issue, error) {
+func queryParent(ctx context.Context, pool poolIface, parentID *int, workspaceID int, authProjectID *int) (*Issue, error) {
 	var parent *Issue
 
 	if parentID != nil {
 		var p Issue
+		var err error
 
-		err := pool.QueryRow(ctx, `
-		SELECT i.id, i.display_id, it.name, i.title, i.body, i.status, i.parent_id, i.project_id, i.workspace_id
-		FROM issues i
-		JOIN issue_types it ON i.issue_type_id = it.id 
-		WHERE i.id = $1 AND i.workspace_id = $2
-	`, *parentID, workspaceID).
-			Scan(
-				&p.ID,
-				&p.DisplayID,
-				&p.TypeName,
-				&p.Title,
-				&p.Body,
-				&p.Status,
-				&p.ParentID,
-				&p.ProjectID,
-				&p.WorkspaceID,
-			)
+		baseQuery := `
+			SELECT i.id, i.display_id, it.name, i.title, i.body, i.status, i.parent_id, i.project_id, i.workspace_id
+			FROM issues i
+			JOIN issue_types it ON i.issue_type_id = it.id 
+			WHERE i.id = $1 AND i.workspace_id = $2
+		`
+
+		if authProjectID != nil {
+			err = pool.QueryRow(ctx, baseQuery+" AND i.project_id = $3", *parentID, workspaceID, *authProjectID).
+				Scan(
+					&p.ID,
+					&p.DisplayID,
+					&p.TypeName,
+					&p.Title,
+					&p.Body,
+					&p.Status,
+					&p.ParentID,
+					&p.ProjectID,
+					&p.WorkspaceID,
+				)
+		} else {
+			err = pool.QueryRow(ctx, baseQuery, *parentID, workspaceID).
+				Scan(
+					&p.ID,
+					&p.DisplayID,
+					&p.TypeName,
+					&p.Title,
+					&p.Body,
+					&p.Status,
+					&p.ParentID,
+					&p.ProjectID,
+					&p.WorkspaceID,
+				)
+		}
 
 		if err != nil {
 			return nil, fmt.Errorf("querying for parent issue: %w", err)
@@ -90,15 +117,23 @@ func queryParent(ctx context.Context, pool poolIface, parentID *int, workspaceID
 	return parent, nil
 }
 
-func queryChildren(ctx context.Context, pool poolIface, issueID int, workspaceID int) ([]Issue, error) {
+func queryChildren(ctx context.Context, pool poolIface, issueID int, workspaceID int, authProjectID *int) ([]Issue, error) {
 	var children []Issue
+	var childRows pgx.Rows
+	var err error
 
-	childRows, err := pool.Query(ctx, `
+	baseQuery := `
 		SELECT i.id, i.display_id, it.name, i.title, i.body, i.status, i.parent_id, i.project_id, i.workspace_id
 		FROM issues i
 		JOIN issue_types it ON i.issue_type_id = it.id
-		WHERE i.parent_id = $1 AND workspace_id = $2
-	`, issueID, workspaceID)
+		WHERE i.parent_id = $1 AND i.workspace_id = $2
+	`
+
+	if authProjectID != nil {
+		childRows, err = pool.Query(ctx, baseQuery+" AND i.project_id = $3", issueID, workspaceID, *authProjectID)
+	} else {
+		childRows, err = pool.Query(ctx, baseQuery, issueID, workspaceID)
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("querying for children: %w", err)
@@ -135,16 +170,24 @@ func queryChildren(ctx context.Context, pool poolIface, issueID int, workspaceID
 	return children, nil
 }
 
-func queryRelatedIssues(ctx context.Context, pool poolIface, issueID int, workspaceID int) ([]RelatedIssue, error) {
+func queryRelatedIssues(ctx context.Context, pool poolIface, issueID int, workspaceID int, authProjectID *int) ([]RelatedIssue, error) {
 	var relatedIssues []RelatedIssue
+	var relatedRows pgx.Rows
+	var err error
 
-	relatedRows, err := pool.Query(ctx, `
+	baseQuery := `
 		SELECT i.display_id, i.title, r.name
 		FROM issue_relations ir
 		JOIN relations r ON r.id = ir.relation_id 
 		JOIN issues i ON i.id = ir.target_issue_id
 		WHERE ir.source_issue_id = $1 AND i.workspace_id = $2
-	`, issueID, workspaceID)
+	`
+
+	if authProjectID != nil {
+		relatedRows, err = pool.Query(ctx, baseQuery+" AND i.project_id = $3", issueID, workspaceID, *authProjectID)
+	} else {
+		relatedRows, err = pool.Query(ctx, baseQuery, issueID, workspaceID)
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("querying for related rows: %w", err)
@@ -171,7 +214,7 @@ func queryRelatedIssues(ctx context.Context, pool poolIface, issueID int, worksp
 	return relatedIssues, nil
 }
 
-func GetIssueContext(ctx context.Context, pool poolIface, displayID string, workspaceID int) (*IssueContext, error) {
+func GetIssueContext(ctx context.Context, pool poolIface, displayID string, workspaceID int, authProjectID *int) (*IssueContext, error) {
 	var issue Issue
 
 	err := pool.QueryRow(ctx, `
@@ -200,25 +243,29 @@ func GetIssueContext(ctx context.Context, pool poolIface, displayID string, work
 		return nil, fmt.Errorf("querying for issue: %w", err)
 	}
 
-	linkedDocs, err := queryLinkedDocs(ctx, pool, issue.ID, workspaceID)
+	if authProjectID != nil && *authProjectID != issue.ProjectID {
+		return nil, ErrProjectIDMismatch
+	}
+
+	linkedDocs, err := queryLinkedDocs(ctx, pool, issue.ID, workspaceID, authProjectID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	parent, err := queryParent(ctx, pool, issue.ParentID, workspaceID)
+	parent, err := queryParent(ctx, pool, issue.ParentID, workspaceID, authProjectID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	children, err := queryChildren(ctx, pool, issue.ID, workspaceID)
+	children, err := queryChildren(ctx, pool, issue.ID, workspaceID, authProjectID)
 
 	if err != nil {
 		return nil, err
 	}
 
-	relatedIssues, err := queryRelatedIssues(ctx, pool, issue.ID, workspaceID)
+	relatedIssues, err := queryRelatedIssues(ctx, pool, issue.ID, workspaceID, authProjectID)
 
 	if err != nil {
 		return nil, err
@@ -233,15 +280,23 @@ func GetIssueContext(ctx context.Context, pool poolIface, displayID string, work
 	}, nil
 }
 
-func ListIssues(ctx context.Context, pool poolIface, status string, workspaceID int) ([]IssueSummary, error) {
-	rows, err := pool.Query(ctx, `
+func ListIssues(ctx context.Context, pool poolIface, status string, workspaceID int, authProjectID *int) ([]IssueSummary, error) {
+	var rows pgx.Rows
+	var err error
+
+	baseQuery := `
 		SELECT i.display_id, it.name, i.title, i.status, p.display_id
 		FROM issues i
 		JOIN issue_types it ON it.id = i.issue_type_id
 		LEFT JOIN issues p ON p.id = i.parent_id
 		WHERE i.status = $1 AND i.workspace_id = $2
-		ORDER BY i.id
-	`, status, workspaceID)
+	`
+
+	if authProjectID != nil {
+		rows, err = pool.Query(ctx, baseQuery+" AND i.project_id = $3 ORDER BY i.id", status, workspaceID, *authProjectID)
+	} else {
+		rows, err = pool.Query(ctx, baseQuery+" ORDER BY i.id", status, workspaceID)
+	}
 
 	if err != nil {
 		return nil, fmt.Errorf("querying issues: %w", err)
