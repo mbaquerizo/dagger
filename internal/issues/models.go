@@ -42,3 +42,8 @@ type IssueSummary struct {
 	TypeName        string  `json:"type"`
 	ParentDisplayID *string `json:"parentDisplayId,omitempty"`
 }
+
+type UpdateStatusRequest struct {
+	// Valid values: "open", "in-progress", "in-review", "done", "closed"
+	Status string `json:"status"`
+}

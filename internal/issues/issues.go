@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 var ErrIssueNotFound = errors.New("issue not found")
@@ -14,6 +15,7 @@ var ErrProjectIDMismatch = errors.New("issue project_id does not match auth cont
 type poolIface interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+	Exec(ctx context.Context, sql string, args ...any) (pgconn.CommandTag, error)
 }
 
 func queryLinkedDocs(ctx context.Context, pool poolIface, issueID int, workspaceID int, authProjectID *int) ([]LinkedDoc, error) {
@@ -329,4 +331,32 @@ func ListIssues(ctx context.Context, pool poolIface, status string, workspaceID 
 	}
 
 	return issueSummaries, nil
+}
+
+func UpdateIssueStatus(ctx context.Context, pool poolIface, req UpdateStatusRequest, displayID string, workspaceID int, authProjectID *int) error {
+	var result pgconn.CommandTag
+	var err error
+
+	baseQuery := `
+		UPDATE issues
+		SET status = $1
+		WHERE display_id = $2
+		AND workspace_id = $3
+	`
+
+	if authProjectID != nil {
+		result, err = pool.Exec(ctx, baseQuery+" AND project_id = $4", req.Status, displayID, workspaceID, *authProjectID)
+	} else {
+		result, err = pool.Exec(ctx, baseQuery, req.Status, displayID, workspaceID)
+	}
+
+	if err != nil {
+		return fmt.Errorf("updating issue status: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return ErrIssueNotFound
+	}
+
+	return nil
 }

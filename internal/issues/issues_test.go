@@ -447,3 +447,25 @@ func TestListIssues_NoResults(t *testing.T) {
 		t.Errorf("expected 0 issues, got %d", len(issues))
 	}
 }
+
+func TestUpdateIssueStatus_ValidStatus(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectExec(`UPDATE issues`).
+		WithArgs("in-progress", "DGR-45", 1).
+		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+
+	req := UpdateStatusRequest{
+		Status: "in-progress",
+	}
+
+	err = UpdateIssueStatus(context.Background(), mockPool, req, "DGR-45", 1, nil)
+
+	if err != nil {
+		t.Errorf("expected success, but got error: %v", err)
+	}
+}

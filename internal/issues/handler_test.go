@@ -1,7 +1,9 @@
 package issues
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -288,5 +290,81 @@ func TestHandler_ListIssues_NoWorkspace(t *testing.T) {
 
 	if w.Code != http.StatusUnauthorized {
 		t.Errorf("expected 401, got %d", w.Code)
+	}
+}
+
+func TestHandler_UpdateIssueStatus_Success(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	req := UpdateStatusRequest{
+		Status: "in-review",
+	}
+
+	body, err := json.Marshal(req)
+
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	mockPool.ExpectExec(`UPDATE issues`).
+		WithArgs(req.Status, "DGR-42", 1).
+		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+
+	r := httptest.NewRequest(http.MethodPatch, "/api/v1/issues/DGR-42/status", bytes.NewReader(body))
+
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r.Header.Set("Content-Type", "application/json")
+
+	chiCtx := chi.NewRouteContext()
+	chiCtx.URLParams.Add("displayId", "DGR-42")
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, chiCtx))
+
+	w := httptest.NewRecorder()
+
+	handler := NewUpdateIssueStatusHandler(mockPool)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+}
+
+func TestHandler_UpdateIssueStatus_ErrInvalidStatus(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	req := UpdateStatusRequest{
+		Status: "pegasus",
+	}
+
+	body, err := json.Marshal(req)
+
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPatch, "/api/v1/issues/DGR-42/status", bytes.NewReader(body))
+
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r.Header.Set("Content-Type", "application/json")
+
+	chiCtx := chi.NewRouteContext()
+	chiCtx.URLParams.Add("displayId", "DGR-42")
+	r = r.WithContext(context.WithValue(r.Context(), chi.RouteCtxKey, chiCtx))
+
+	w := httptest.NewRecorder()
+
+	handler := NewUpdateIssueStatusHandler(mockPool)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Errorf("expected 422, got %d", w.Code)
 	}
 }

@@ -1,7 +1,7 @@
 ---
 id: DGR-12
 issueType: task
-status: open
+status: done
 tags:
   - api
 blockedBy: []
@@ -19,10 +19,10 @@ transition an issue through its workflow states.
 ## Acceptance criteria
 
 1. `PATCH /api/v1/issues/{displayId}/status` accepts `{ "status": "<new-status>" }`
-2. Validates status is one of: `open`, `in-progress`, `in-review`, `done`
+2. Validates status is one of: `open`, `in-progress`, `in-review`, `done`, `closed`
 3. Returns 404 if the issue does not exist
 4. Returns 422 if the status value is invalid
-5. Returns 200 with the updated issue on success
+5. Returns 200 on success
 6. Protected by the existing API-key auth middleware
 
 ## Files

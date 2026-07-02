@@ -54,6 +54,8 @@ func main() {
 
 	r.Get("/api/v1/issues", issues.NewListIssuesHandler(pool))
 
+	r.Patch("/api/v1/issues/{displayId}/status", issues.NewUpdateIssueStatusHandler(pool))
+
 	log.Println("server starting on :8080")
 
 	http.ListenAndServe(":8080", r)
