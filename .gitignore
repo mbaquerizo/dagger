@@ -1,6 +1,7 @@
 # Binaries
 /api
 /migrate
+/mcp
 /tmp/
 
 # IDE

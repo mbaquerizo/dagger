@@ -1,7 +1,7 @@
 ---
 id: DGR-12
 issueType: story
-status: open
+status: done
 tags:
   - phase-1
   - mcp
@@ -22,36 +22,51 @@ As an AI agent (Claude Code / OpenCode), I want to fetch Dagger ticket context v
 
 ## Acceptance criteria
 
-1. `dagger-mcp` binary that communicates via stdio JSON-RPC 2.0
-2. Tools implemented:
-   - `get_issue` — fetch ticket with full context by displayId
-   - `get_doc` — fetch individual document by id/displayId
+1. `POST /mcp` endpoint on the REST API that accepts JSON-RPC 2.0 requests
+2. Tool dispatch logic behind a shared `ToolService` interface
+3. Tools implemented:
+   - `get_issue` — fetch ticket with full context by display_id
+   - `get_doc` — fetch individual document by display_id
    - `list_issues` — list tickets with optional status filter
    - `update_issue_status` — updates issue status
-   - `search_docs` — search across docs and tickets (basic text match)
-3. Each tool calls the Dagger REST API internally (not direct DB access)
-4. Configured via `--api-key` flag and optionally `--api-url`
-5. Compatible with standard MCP config format for `.mcp.json` or Claude Desktop
+4. Each tool calls the database directly via the existing `internal/issues` and `internal/docs` packages
+5. Authentication via existing `Authorization: Bearer <key>` header (uses existing auth middleware)
+6. Compatible with standard MCP HTTP transport config in `.mcp.json` or Claude Desktop
 
-## Scenarios
+## User configuration
 
-```gherkin
-Scenario: Agent fetches ticket
-  Given dagger-mcp is running with a valid API key
-  When the agent calls get_ticket({ ticket_id: "DGR-42" })
-  Then the tool returns the ticket with full context as markdown
-
-Scenario: Agent lists open tickets
-  When the agent calls list_tickets({ status: "open" })
-  Then the tool returns a list of open tickets with metadata
+```json
+{
+  "mcpServers": {
+    "dagger": {
+      "type": "http",
+      "url": "https://api.dagger.sh/mcp",
+      "headers": {
+        "Authorization": "Bearer dgr_abc123"
+      }
+    }
+  }
+}
 ```
 
 ## Technical notes
 
-- Small Go binary (~200-300 lines max), uses stdlib `net/http` to call the REST API
-- Keep thin — all business logic lives in the REST API, not the MCP server
+- Single `POST /mcp` route on the existing chi router, behind the existing auth middleware
+- Tool logic lives in `internal/mcp/` — dispatch, tool definitions, JSON-RPC types
+- `ToolService` interface extracted so dispatch is independent of data backend
+- HTTP transport uses `DBService` (calls `internal/issues` and `internal/docs` directly — no extra HTTP hop)
 - JSON-RPC 2.0 structured request/response format
-- See `.dag/docs/plan/dagger-plan/05-agent-integration.md` for tool definitions
+- See `.dag/docs/plan/dagger-plan/05-agent-integration.md` for original tool definitions
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `internal/mcp/mcp.go` | JSON-RPC 2.0 types, tool schema types, `ListTools()`, `ToolService` interface |
+| `internal/mcp/server.go` | `Server` dispatch, `tools/list` + `tools/call`, `Serve` stdio loop |
+| `internal/mcp/dbservice.go` | `DBService` — `ToolService` impl backed by `internal/issues` / `internal/docs` |
+| `cmd/api/main.go` | Add `POST /mcp` route |
+| `.mcp.json` | Example user config |
 
 ## Related docs
 

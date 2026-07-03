@@ -11,6 +11,7 @@ import (
 	"github.com/mbaquerizo/dagger/internal/db"
 	"github.com/mbaquerizo/dagger/internal/docs"
 	"github.com/mbaquerizo/dagger/internal/issues"
+	"github.com/mbaquerizo/dagger/internal/mcp"
 	"github.com/mbaquerizo/dagger/internal/publish"
 )
 
@@ -51,6 +52,8 @@ func main() {
 	r.Get("/api/v1/agent/issues/{displayId}", issues.NewGetIssueHandler(pool))
 
 	r.Get("/api/v1/agent/docs/{displayId}", docs.NewGetDocHandler(pool))
+
+	r.Post("/api/v1/agent/mcp", mcp.NewMCPHandler(pool))
 
 	r.Get("/api/v1/issues", issues.NewListIssuesHandler(pool))
 
