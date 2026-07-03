@@ -1,14 +1,14 @@
 ---
-id: DGR-7
+id: DGR-11
 issueType: story
 status: done
 tags:
   - phase-1
   - api
   - docs
-parent: DGR-1
+parent: DGR-5
 blockedBy:
-  - DGR-4
+  - DGR-9
 ---
 
 # Implement GET /api/v1/agent/docs/:displayID endpoint

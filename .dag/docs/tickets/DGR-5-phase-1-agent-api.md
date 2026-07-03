@@ -1,5 +1,5 @@
 ---
-id: DGR-1
+id: DGR-5
 issueType: epic
 status: open
 tags:
@@ -44,16 +44,16 @@ Build the Dagger API server: an HTTP service with PostgreSQL backend that allows
 
 ## Stories
 
-- DGR-2: Scaffold Go project skeleton
-- DGR-3: Set up PostgreSQL schema and migration infrastructure
-- DGR-4: Add API key authentication middleware
-- DGR-5: Implement POST /api/v1/publish endpoint
-- DGR-6: Implement GET /api/v1/tickets/:displayId endpoint
-- DGR-7: Implement GET /api/v1/documents/:id endpoint
-- DGR-8: Build MCP server
-- DGR-9: Create deployment configuration
-- DGR-10: Build landing page
-- DGR-11: DAG "dagger" adapter
+- DGR-7: Scaffold Go project skeleton
+- DGR-8: Set up PostgreSQL schema and migration infrastructure
+- DGR-6: Add API key authentication middleware
+- DGR-9: Implement POST /api/v1/publish endpoint
+- DGR-10: Implement GET /api/v1/tickets/:displayId endpoint
+- DGR-11: Implement GET /api/v1/documents/:id endpoint
+- DGR-12: Build MCP server
+- DGR-13: Create deployment configuration
+- DGR-14: Build landing page
+- DGR-15: DAG "dagger" adapter
 
 ---
 

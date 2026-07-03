@@ -1,14 +1,14 @@
 ---
-id: DGR-5
+id: DGR-9
 issueType: story
 status: done
 tags:
   - phase-1
   - api
   - ingest
-parent: DGR-1
+parent: DGR-5
 blockedBy:
-  - DGR-4
+  - DGR-8
 ---
 
 # Implement POST /api/v1/publish endpoint

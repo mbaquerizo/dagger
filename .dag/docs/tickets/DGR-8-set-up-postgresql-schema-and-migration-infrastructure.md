@@ -1,15 +1,15 @@
 ---
-id: DGR-3
+id: DGR-8
 issueType: task
 status: done
 blockedBy:
-  - DGR-2
+  - DGR-7
 tags:
   - phase-1
   - database
   - postgresql
   - supabase
-parent: DGR-1
+parent: DGR-5
 ---
 
 # Set up PostgreSQL schema and migration infrastructure

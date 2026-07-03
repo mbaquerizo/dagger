@@ -1,12 +1,12 @@
 ---
-id: DGR-10
+id: DGR-14
 issueType: story
 status: open
 tags:
   - phase-1
   - landing-page
   - frontend
-parent: DGR-1
+parent: DGR-5
 blockedBy: []
 ---
 

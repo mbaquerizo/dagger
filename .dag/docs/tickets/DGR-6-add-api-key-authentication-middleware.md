@@ -1,12 +1,12 @@
 ---
-id: DGR-4
+id: DGR-6
 issueType: task
 status: done
 tags:
   - phase-1
   - auth
   - api-keys
-parent: DGR-1
+parent: DGR-5
 ---
 
 # Add API key authentication middleware

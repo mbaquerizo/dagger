@@ -1,14 +1,14 @@
 ---
-id: DGR-11
+id: DGR-15
 issueType: story
 status: open
 tags:
   - phase-1
   - dag-plugin
   - adapter
-parent: DGR-1
+parent: DGR-5
 blockedBy:
-  - DGR-5
+  - DGR-9
 ---
 
 # DAG "dagger" adapter

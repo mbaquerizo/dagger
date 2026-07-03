@@ -1,5 +1,5 @@
 ---
-id: DGR-6
+id: DGR-10
 issueType: story
 status: done
 tags:
@@ -7,9 +7,9 @@ tags:
   - api
   - issues
   - context-assembly
-parent: DGR-1
+parent: DGR-5
 blockedBy:
-  - DGR-5
+  - DGR-9
 ---
 
 # Implement GET /api/v1/agent/issues/:displayId endpoint

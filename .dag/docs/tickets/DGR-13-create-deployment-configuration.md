@@ -1,5 +1,5 @@
 ---
-id: DGR-9
+id: DGR-13
 issueType: task
 status: open
 tags:
@@ -7,9 +7,9 @@ tags:
   - deployment
   - railway
   - supabase
-parent: DGR-1
+parent: DGR-5
 blockedBy:
-  - DGR-3
+  - DGR-6
 ---
 
 # Create deployment configuration

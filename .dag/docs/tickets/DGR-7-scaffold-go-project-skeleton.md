@@ -1,5 +1,5 @@
 ---
-id: DGR-2
+id: DGR-7
 issueType: task
 status: done
 blockedBy: []
@@ -7,7 +7,7 @@ tags:
   - phase-1
   - go
   - project-setup
-parent: DGR-1
+parent: DGR-5
 ---
 
 # Scaffold Go project skeleton

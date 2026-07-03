@@ -1,15 +1,17 @@
 ---
-id: DGR-8
+id: DGR-12
 issueType: story
 status: open
 tags:
   - phase-1
   - mcp
   - agent-integration
-parent: DGR-1
+parent: DGR-5
 blockedBy:
-  - DGR-6
-  - DGR-7
+  - DGR-9
+  - DGR-10
+  - DGR-11
+  - DGR-16
 ---
 
 # Build MCP server
@@ -22,9 +24,10 @@ As an AI agent (Claude Code / OpenCode), I want to fetch Dagger ticket context v
 
 1. `dagger-mcp` binary that communicates via stdio JSON-RPC 2.0
 2. Tools implemented:
-   - `get_ticket` — fetch ticket with full context by displayId
-   - `get_document` — fetch individual document by id/displayId
-   - `list_tickets` — list tickets with optional status filter
+   - `get_issue` — fetch ticket with full context by displayId
+   - `get_doc` — fetch individual document by id/displayId
+   - `list_issues` — list tickets with optional status filter
+   - `update_issue_status` — updates issue status
    - `search_docs` — search across docs and tickets (basic text match)
 3. Each tool calls the Dagger REST API internally (not direct DB access)
 4. Configured via `--api-key` flag and optionally `--api-url`
