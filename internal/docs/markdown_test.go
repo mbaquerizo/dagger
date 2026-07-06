@@ -18,7 +18,23 @@ func TestRenderDoc_Full(t *testing.T) {
 
 	output := RenderDoc(doc)
 
-	if !strings.HasPrefix(output, "# DGR-3: Deploy on Railway + Supabase") {
+	if !strings.HasPrefix(output, "---\n") {
+		t.Errorf("expected frontmatter prefix, but got:\n%s", output)
+	}
+	if !strings.Contains(output, "id: 5") {
+		t.Errorf("expected frontmatter id, got:\n%s", output)
+	}
+	if !strings.Contains(output, "display_id: DGR-3") {
+		t.Errorf("expected frontmatter display_id, got:\n%s", output)
+	}
+	if !strings.Contains(output, "status: approved") {
+		t.Errorf("expected frontmatter status, got:\n%s", output)
+	}
+	if !strings.Contains(output, "type: adr") {
+		t.Errorf("expected frontmatter type, got:\n%s", output)
+	}
+
+	if !strings.Contains(output, "# DGR-3: Deploy on Railway + Supabase") {
 		t.Errorf("expected header line, got:\n%s", output)
 	}
 	if !strings.Contains(output, "**Status:** approved") {
@@ -53,10 +69,10 @@ func TestRenderDoc_NilBody(t *testing.T) {
 
 	// No extra content after the metadata block
 	lines := strings.Split(output, "\n")
-	if len(lines) < 3 {
-		t.Fatal("expected at least 3 lines")
+	if len(lines) < 10 {
+		t.Fatal("expected at least 10 lines")
 	}
-	if lines[2] != "" && !strings.Contains(lines[2], "**") {
+	if lines[9] != "" && !strings.Contains(lines[9], "**") {
 		t.Errorf("expected only header + metadata lines when body is nil, got:\n%s", output)
 	}
 }

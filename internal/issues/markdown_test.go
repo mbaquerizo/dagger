@@ -9,21 +9,25 @@ func TestRenderIssueContext_Full(t *testing.T) {
 	body := "Test body content\n\nWith multiple lines."
 	adrBody := "ADR decision content"
 	parentEpic := Issue{
+		ID:        1,
 		DisplayID: "EPIC-1",
 		Title:     "API Hardening Epic",
 	}
 
 	ctx := &IssueContext{
 		Issue: Issue{
+			ID:        2,
 			DisplayID: "DGR-42",
 			TypeName:  "story",
 			Title:     "Add rate limiting",
 			Body:      &body,
 			Status:    "open",
+			ParentID:  &parentEpic.ID,
 		},
 		Parent: &parentEpic,
 		LinkedDocs: []LinkedDoc{
 			{
+				ID:        1,
 				DisplayID: "ADR-1",
 				DocType:   "adr",
 				Title:     "Rate limiting strategy",
@@ -45,6 +49,28 @@ func TestRenderIssueContext_Full(t *testing.T) {
 
 	result := RenderIssueContext(ctx)
 
+	if !strings.HasPrefix(result, "---\n") {
+		t.Errorf("expected frontmatter prefix, but got:\n%s", result)
+	}
+
+	if !strings.Contains(result, "id: 2") {
+		t.Errorf("expected frontmatter id, got:\n%s", result)
+	}
+	if !strings.Contains(result, "display_id: DGR-42") {
+		t.Errorf("expected frontmatter display_id, got:\n%s", result)
+	}
+	if !strings.Contains(result, "status: open") {
+		t.Errorf("expected frontmatter status, got:\n%s", result)
+	}
+	if !strings.Contains(result, "type: story") {
+		t.Errorf("expected frontmatter type, got:\n%s", result)
+	}
+	if !strings.Contains(result, "parent_id: 1") {
+		t.Errorf("expected frontmatter parent_id, got:\n%s", result)
+	}
+	if !strings.Contains(result, "parent_display_id: EPIC-1") {
+		t.Errorf("expected frontmatter parent_display_id, got:\n%s", result)
+	}
 	// Header
 	if !strings.Contains(result, "# DGR-42: Add rate limiting") {
 		t.Errorf("expected header line, got:\n%s", result)
@@ -112,6 +138,10 @@ func TestRenderIssueContext_Minimal(t *testing.T) {
 	}
 
 	result := RenderIssueContext(ctx)
+
+	if !strings.HasPrefix(result, "---\n") {
+		t.Errorf("expected frontmatter prefix, but got:\n%s", result)
+	}
 
 	// Header present
 	if !strings.Contains(result, "# DGR-1: Simple bug") {

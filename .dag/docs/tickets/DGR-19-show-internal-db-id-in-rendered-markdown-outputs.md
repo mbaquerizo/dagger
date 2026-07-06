@@ -1,7 +1,7 @@
 ---
 id: DGR-19
 issueType: story
-status: open
+status: done
 tags:
   - mcp
   - api

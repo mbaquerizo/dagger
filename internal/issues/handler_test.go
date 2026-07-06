@@ -227,10 +227,10 @@ func TestHandler_ListIssues_Success(t *testing.T) {
 	}
 	t.Cleanup(func() { mockPool.Close() })
 
-	mockPool.ExpectQuery(`SELECT i.display_id, it.name`).
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
 		WithArgs("open", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
-			AddRow("DGR-1", "First issue", "open", "story", nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}).
+			AddRow(1, "DGR-1", "First issue", "open", "story", nil))
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/issues?status=open", nil)
 	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
@@ -262,9 +262,9 @@ func TestHandler_ListIssues_DefaultsToOpen(t *testing.T) {
 	}
 	t.Cleanup(func() { mockPool.Close() })
 
-	mockPool.ExpectQuery(`SELECT i.display_id, it.name`).
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
 		WithArgs("open", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}))
 
 	// No ?status= query param — handler should default to "open"
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/issues", nil)

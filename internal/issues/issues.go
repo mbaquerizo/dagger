@@ -287,7 +287,7 @@ func ListIssues(ctx context.Context, pool poolIface, status string, workspaceID 
 	var err error
 
 	baseQuery := `
-		SELECT i.display_id, it.name, i.title, i.status, p.display_id
+		SELECT i.id, i.display_id, it.name, i.title, i.status, p.display_id
 		FROM issues i
 		JOIN issue_types it ON it.id = i.issue_type_id
 		LEFT JOIN issues p ON p.id = i.parent_id
@@ -312,6 +312,7 @@ func ListIssues(ctx context.Context, pool poolIface, status string, workspaceID 
 		var issueSummary IssueSummary
 
 		err := rows.Scan(
+			&issueSummary.ID,
 			&issueSummary.DisplayID,
 			&issueSummary.TypeName,
 			&issueSummary.Title,

@@ -6,6 +6,7 @@ var ErrDocNotFound = errors.New("doc not found")
 var ErrProjectIDMismatch = errors.New("doc project_id does not match auth context")
 
 type ParentDoc struct {
+	ID        int
 	DisplayID string
 	Title     string
 }

@@ -105,8 +105,8 @@ func TestServer_ToolsCallGetDoc(t *testing.T) {
 
 	mock.ExpectQuery(".*").
 		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
-			AddRow(1, "DOC-1", "adr", "Test doc", nil, "approved", 1, 1, nil, nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(1, "DOC-1", "adr", "Test doc", nil, "approved", 1, 1, nil, nil, nil, nil))
 
 	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
@@ -142,8 +142,8 @@ func TestServer_ToolsCallListIssues(t *testing.T) {
 
 		mock.ExpectQuery(".*").
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
-			WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
-				AddRow("DGR-42", "Test issue", "open", "story", nil))
+			WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}).
+				AddRow(1, "DGR-42", "Test issue", "open", "story", nil))
 
 		svc := NewDBService(mock, "http://localhost:8080")
 		server := NewServer(svc)
@@ -170,8 +170,8 @@ func TestServer_ToolsCallListIssues(t *testing.T) {
 
 		mock.ExpectQuery(".*").
 			WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
-			WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
-				AddRow("DGR-43", "Another issue", "open", "task", nil))
+			WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}).
+				AddRow(1, "DGR-43", "Another issue", "open", "task", nil))
 
 		svc := NewDBService(mock, "http://localhost:8080")
 		server := NewServer(svc)

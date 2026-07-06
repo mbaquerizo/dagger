@@ -399,11 +399,11 @@ func TestListIssues_Success(t *testing.T) {
 
 	parentDisplayID := "EPIC-1"
 
-	mockPool.ExpectQuery(`SELECT i.display_id, it.name`).
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
 		WithArgs("open", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
-			AddRow("DGR-1", "First issue", "open", "story", nil).
-			AddRow("DGR-2", "Second issue", "open", "bug", &parentDisplayID))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}).
+			AddRow(1, "DGR-1", "First issue", "open", "story", nil).
+			AddRow(2, "DGR-2", "Second issue", "open", "bug", &parentDisplayID))
 
 	issues, err := ListIssues(context.Background(), mockPool, "open", 1, nil)
 	if err != nil {
@@ -435,9 +435,9 @@ func TestListIssues_NoResults(t *testing.T) {
 	}
 	t.Cleanup(func() { mockPool.Close() })
 
-	mockPool.ExpectQuery(`SELECT i.display_id, it.name`).
+	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
 		WithArgs("closed", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}))
 
 	issues, err := ListIssues(context.Background(), mockPool, "closed", 1, nil)
 	if err != nil {

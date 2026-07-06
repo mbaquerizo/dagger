@@ -19,8 +19,8 @@ func TestGetDoc_ByDisplayID_Success(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("DGR-3", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
-			AddRow(5, "DGR-3", "adr", "Test ADR", &body, "approved", 1, 1, nil, nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(5, "DGR-3", "adr", "Test ADR", &body, "approved", 1, 1, nil, nil, nil, nil))
 
 	doc, err := GetDoc(context.Background(), mockPool, "DGR-3", 1, nil)
 	if err != nil {
@@ -85,8 +85,8 @@ func TestGetDoc_WithNilBody(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("CE-1", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
-			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 1, nil, nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 1, nil, nil, nil, nil))
 
 	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1, nil)
 	if err != nil {
@@ -117,8 +117,8 @@ func TestGetDoc_WithProjectIDMismatch(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("CE-1", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
-			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 1, nil, nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 1, nil, nil, nil, nil))
 
 	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1, &projectID)
 	if err == nil {
@@ -143,8 +143,8 @@ func TestGetDoc_WithParentProjectIDMismatch(t *testing.T) {
 
 	mockPool.ExpectQuery(`SELECT d\.id, d\.display_id, d\.type, d\.title, d\.body, d\.status`).
 		WithArgs("CE-1", 1).
-		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
-			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 2, nil, nil, nil))
+		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_id", "p_project_id", "p_display_id", "p_title"}).
+			AddRow(10, "CE-1", "adr", "Code Exploration", nil, "proposed", 1, 2, nil, nil, nil, nil))
 
 	doc, err := GetDoc(context.Background(), mockPool, "CE-1", 1, &projectID)
 

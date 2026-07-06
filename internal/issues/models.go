@@ -36,6 +36,7 @@ type IssueContext struct {
 }
 
 type IssueSummary struct {
+	ID              int     `json:"id"`
 	DisplayID       string  `json:"displayId"`
 	Title           string  `json:"title"`
 	Status          string  `json:"status"`

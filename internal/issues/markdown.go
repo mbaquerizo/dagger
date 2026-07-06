@@ -8,6 +8,18 @@ import (
 func RenderIssueContext(ctx *IssueContext) string {
 	var b strings.Builder
 
+	fmt.Fprintf(&b, "---\n")
+	fmt.Fprintf(&b, "id: %d\n", ctx.Issue.ID)
+	fmt.Fprintf(&b, "display_id: %s\n", ctx.Issue.DisplayID)
+	fmt.Fprintf(&b, "status: %s\n", ctx.Issue.Status)
+	fmt.Fprintf(&b, "type: %s\n", ctx.Issue.TypeName)
+
+	if ctx.Issue.ParentID != nil && ctx.Parent != nil {
+		fmt.Fprintf(&b, "parent_id: %d\n", *ctx.Issue.ParentID)
+		fmt.Fprintf(&b, "parent_display_id: %s\n", ctx.Parent.DisplayID)
+	}
+	fmt.Fprintf(&b, "---\n\n")
+
 	fmt.Fprintf(&b, "# %s: %s\n\n", ctx.Issue.DisplayID, ctx.Issue.Title)
 	fmt.Fprintf(&b, "**Status:** %s  |  **Type:** %s\n", ctx.Issue.Status, ctx.Issue.TypeName)
 
