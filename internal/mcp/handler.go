@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func NewMCPHandler(pool poolIface) http.HandlerFunc {
+func NewMCPHandler(pool poolIface, baseURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := io.ReadAll(r.Body)
 
@@ -31,7 +31,7 @@ func NewMCPHandler(pool poolIface) http.HandlerFunc {
 			return
 		}
 
-		server := NewServer(NewDBService(pool))
+		server := NewServer(NewDBService(pool, baseURL))
 
 		resp := server.HandleRequest(r.Context(), req)
 

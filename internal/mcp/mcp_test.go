@@ -80,8 +80,8 @@ func TestResponseMarshalError(t *testing.T) {
 
 func TestListTools(t *testing.T) {
 	tools := ListTools()
-	if len(tools) != 4 {
-		t.Fatalf("got %d tools, want 4", len(tools))
+	if len(tools) != 5 {
+		t.Fatalf("got %d tools, want 5", len(tools))
 	}
 	names := make(map[string]bool)
 	for _, tool := range tools {
@@ -96,7 +96,7 @@ func TestListTools(t *testing.T) {
 			t.Errorf("tool %q InputSchema.Type = %q, want object", tool.Name, tool.InputSchema.Type)
 		}
 	}
-	want := []string{"get_issue", "get_doc", "list_issues", "update_issue_status"}
+	want := []string{"get_issue", "get_doc", "list_issues", "update_issue_status", "publish"}
 	for _, name := range want {
 		if !names[name] {
 			t.Errorf("missing tool: %s", name)
@@ -176,6 +176,135 @@ func TestToolParams(t *testing.T) {
 				t.Errorf("%s should be required", name)
 			}
 		}
+	})
+
+	t.Run("publish", func(t *testing.T) {
+		tool, ok := byName["publish"]
+		if !ok {
+			t.Fatal("missing")
+		}
+
+		// Check top-level required params
+		for _, name := range []string{"type", "title", "body"} {
+			p, ok := tool.InputSchema.Properties[name]
+			if !ok {
+				t.Fatalf("missing %s param", name)
+			}
+			if !contains(tool.InputSchema.Required, name) {
+				t.Errorf("%s should be required", name)
+			}
+			if p.Type != "string" {
+				t.Errorf("%s type = %q, want string", name, p.Type)
+			}
+		}
+
+		t.Run("project_id", func(t *testing.T) {
+			p, ok := tool.InputSchema.Properties["project_id"]
+			if !ok {
+				t.Fatal("missing project_id param")
+			}
+			if !contains(tool.InputSchema.Required, "project_id") {
+				t.Error("project_id should be required")
+			}
+			if p.Type != "number" {
+				t.Errorf("project_id type = %q, want number", p.Type)
+			}
+		})
+
+		t.Run("parent_id", func(t *testing.T) {
+			p, ok := tool.InputSchema.Properties["parent_id"]
+			if !ok {
+				t.Fatal("missing parent_id param")
+			}
+			if contains(tool.InputSchema.Required, "parent_id") {
+				t.Error("parent_id should be optional")
+			}
+			if p.Type != "number" {
+				t.Errorf("parent_id type = %q, want number", p.Type)
+			}
+		})
+
+		t.Run("metadata", func(t *testing.T) {
+			p, ok := tool.InputSchema.Properties["metadata"]
+			if !ok {
+				t.Fatal("missing metadata param")
+			}
+			if contains(tool.InputSchema.Required, "metadata") {
+				t.Error("metadata should be optional")
+			}
+			if p.Type != "object" {
+				t.Fatalf("metadata type = %q, want object", p.Type)
+			}
+			if p.Properties == nil {
+				t.Fatal("metadata.Properties is nil")
+			}
+
+			meta := p.Properties
+
+			// issue_type
+			ip, ok := meta.Properties["issue_type"]
+			if !ok {
+				t.Fatal("missing metadata.issue_type")
+			}
+			if contains(meta.Required, "issue_type") {
+				t.Error("metadata.issue_type should be optional")
+			}
+			if ip.Type != "string" {
+				t.Errorf("metadata.issue_type type = %q, want string", ip.Type)
+			}
+
+			// status
+			sp, ok := meta.Properties["status"]
+			if !ok {
+				t.Fatal("missing metadata.status")
+			}
+			if sp.Type != "string" {
+				t.Errorf("metadata.status type = %q, want string", sp.Type)
+			}
+
+			// tags
+			tp, ok := meta.Properties["tags"]
+			if !ok {
+				t.Fatal("missing metadata.tags")
+			}
+			if tp.Type != "array" {
+				t.Errorf("metadata.tags type = %q, want array", tp.Type)
+			}
+			if tp.Items == nil || tp.Items.Type != "string" {
+				t.Error("metadata.tags.Items should be {Type: string}")
+			}
+
+			// relationships
+			rp, ok := meta.Properties["relationships"]
+			if !ok {
+				t.Fatal("missing metadata.relationships")
+			}
+			if rp.Type != "array" {
+				t.Errorf("metadata.relationships type = %q, want array", rp.Type)
+			}
+			if rp.Items == nil {
+				t.Fatal("metadata.relationships.Items is nil")
+			}
+			if rp.Items.Type != "object" {
+				t.Errorf("metadata.relationships.Items.Type = %q, want object", rp.Items.Type)
+			}
+			for _, fn := range []string{"target_id", "type"} {
+				fp, ok := rp.Items.Properties[fn]
+				if !ok {
+					t.Fatalf("missing relationships.Items.Properties[%s]", fn)
+				}
+				if !contains(rp.Items.Required, fn) {
+					t.Errorf("relationships.Items.Required missing %s", fn)
+				}
+				wantType := "string"
+				if fn == "target_id" {
+					wantType = "number"
+				}
+				if fp.Type != wantType {
+					t.Errorf("relationships.Items.Properties[%s] type = %q, want %s", fn, fp.Type, wantType)
+				}
+			}
+		})
 	})
 }
 

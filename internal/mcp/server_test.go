@@ -15,7 +15,7 @@ func TestServer_ToolsList(t *testing.T) {
 	}
 	defer mock.Close()
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 
 	resp := server.HandleRequest(context.Background(), Request{
@@ -38,8 +38,8 @@ func TestServer_ToolsList(t *testing.T) {
 		t.Fatal("result.tools should be []ToolDefinition")
 	}
 
-	if len(tools) != 4 {
-		t.Fatalf("got %d tools, want 4", len(tools))
+	if len(tools) != 5 {
+		t.Fatalf("got %d tools, want 5", len(tools))
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -68,7 +68,7 @@ func TestServer_ToolsCallGetIssue(t *testing.T) {
 		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
 		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "relation_type"}))
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 	ctx := auth.WithWorkspaceID(context.Background(), 1)
 
@@ -108,7 +108,7 @@ func TestServer_ToolsCallGetDoc(t *testing.T) {
 		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "type", "title", "body", "status", "workspace_id", "project_id", "p_project_id", "p_display_id", "p_title"}).
 			AddRow(1, "DOC-1", "adr", "Test doc", nil, "approved", 1, 1, nil, nil, nil))
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 	ctx := auth.WithWorkspaceID(context.Background(), 1)
 
@@ -145,7 +145,7 @@ func TestServer_ToolsCallListIssues(t *testing.T) {
 			WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
 				AddRow("DGR-42", "Test issue", "open", "story", nil))
 
-		svc := NewDBService(mock)
+		svc := NewDBService(mock, "http://localhost:8080")
 		server := NewServer(svc)
 		ctx := auth.WithWorkspaceID(context.Background(), 1)
 
@@ -173,7 +173,7 @@ func TestServer_ToolsCallListIssues(t *testing.T) {
 			WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "status", "type_name", "parent_display_id"}).
 				AddRow("DGR-43", "Another issue", "open", "task", nil))
 
-		svc := NewDBService(mock)
+		svc := NewDBService(mock, "http://localhost:8080")
 		server := NewServer(svc)
 		ctx := auth.WithWorkspaceID(context.Background(), 1)
 
@@ -199,13 +199,56 @@ func TestServer_ToolsCallUpdateStatus(t *testing.T) {
 		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
 		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 	ctx := auth.WithWorkspaceID(context.Background(), 1)
 
 	resp := callTool(ctx, server, "update_issue_status", map[string]interface{}{
 		"display_id": "DGR-42",
 		"status":     "in-review",
+	})
+
+	if resp.Error != nil {
+		t.Fatalf("unexpected error: %+v", resp.Error)
+	}
+	result, ok := resp.Result.(ToolResult)
+	if !ok {
+		t.Fatal("result should be a ToolResult")
+	}
+	if len(result.Content) != 1 {
+		t.Fatalf("got %d content items, want 1", len(result.Content))
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestServer_ToolsCallPublish(t *testing.T) {
+	mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherAny))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	mock.ExpectBegin()
+	mock.ExpectQuery(".*").WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"slug"}).AddRow("DGR"))
+	mock.ExpectQuery(".*").WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{""}).AddRow(42))
+	mock.ExpectQuery(".*").WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(99))
+	mock.ExpectCommit()
+
+	svc := NewDBService(mock, "http://localhost:8080")
+	server := NewServer(svc)
+	ctx := auth.WithWorkspaceID(context.Background(), 1)
+
+	resp := callTool(ctx, server, "publish", map[string]interface{}{
+		"type":       "adr",
+		"title":      "Test ADR",
+		"body":       "# Test",
+		"project_id": float64(1),
 	})
 
 	if resp.Error != nil {
@@ -231,7 +274,7 @@ func TestServer_MethodNotFound(t *testing.T) {
 	}
 	defer mock.Close()
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 
 	resp := server.HandleRequest(context.Background(), Request{
@@ -265,7 +308,7 @@ func TestServer_MissingRequiredParams(t *testing.T) {
 	}
 	defer mock.Close()
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 
 	tests := []struct {
@@ -277,6 +320,8 @@ func TestServer_MissingRequiredParams(t *testing.T) {
 		{"get_doc missing display_id", "get_doc", map[string]interface{}{}},
 		{"update_issue_status missing all", "update_issue_status", map[string]interface{}{}},
 		{"update_issue_status missing status", "update_issue_status", map[string]interface{}{"display_id": "DGR-42"}},
+		{"publish missing type", "publish", map[string]interface{}{"title": "t", "body": "b", "project_id": float64(1)}},
+		{"publish missing project_id", "publish", map[string]interface{}{"type": "adr", "title": "t", "body": "b"}},
 	}
 
 	for _, tt := range tests {
@@ -303,7 +348,7 @@ func TestServer_IDPropagation(t *testing.T) {
 	}
 	defer mock.Close()
 
-	svc := NewDBService(mock)
+	svc := NewDBService(mock, "http://localhost:8080")
 	server := NewServer(svc)
 
 	resp := server.HandleRequest(context.Background(), Request{

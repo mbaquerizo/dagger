@@ -2,6 +2,8 @@ package mcp
 
 import (
 	"context"
+
+	"github.com/mbaquerizo/dagger/internal/publish"
 )
 
 type Server struct {
@@ -159,6 +161,143 @@ func (s *Server) handleToolCall(ctx context.Context, req Request) Response {
 		}
 
 		result, err := s.service.UpdateIssueStatus(ctx, displayID, newStatus)
+
+		if err != nil {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInternal, Message: err.Error()},
+			}
+		}
+
+		return Response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Result:  result,
+		}
+	case "publish":
+		publishType, ok := args["type"].(string)
+
+		if !ok || publishType == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: type"},
+			}
+		}
+
+		title, ok := args["title"].(string)
+
+		if !ok || title == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: title"},
+			}
+		}
+
+		body, ok := args["body"].(string)
+
+		if !ok || body == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: body"},
+			}
+		}
+
+		projectID, ok := args["project_id"].(float64)
+
+		if !ok || projectID == 0 {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: project_id"},
+			}
+		}
+
+		publishReq := publish.PublishRequest{
+			Type:      publishType,
+			Title:     title,
+			Body:      body,
+			ProjectID: int(projectID),
+		}
+
+		parentIDRaw, ok := args["parent_id"].(float64)
+
+		if ok && parentIDRaw != 0 {
+			parentID := int(parentIDRaw)
+			publishReq.ParentID = &parentID
+		}
+
+		metadataRaw, ok := args["metadata"].(map[string]interface{})
+
+		if ok {
+			var metadata publish.Metadata
+			issueType, ok := metadataRaw["issue_type"].(string)
+
+			if ok {
+				metadata.IssueType = &issueType
+			}
+
+			status, ok := metadataRaw["status"].(string)
+
+			if ok {
+				metadata.Status = &status
+			}
+
+			tagsRaw, ok := metadataRaw["tags"].([]interface{})
+
+			if ok {
+				var tags []string
+				for _, tagRaw := range tagsRaw {
+					tag, ok := tagRaw.(string)
+
+					if ok {
+						tags = append(tags, tag)
+					}
+				}
+
+				if len(tags) > 0 {
+					metadata.Tags = tags
+				}
+			}
+
+			relationshipsRaw, ok := metadataRaw["relationships"].([]interface{})
+
+			if ok {
+				var relationships []publish.Relationship
+
+				for _, relationshipRaw := range relationshipsRaw {
+					relationship, ok := relationshipRaw.(map[string]interface{})
+
+					if ok {
+						targetID, targetIDExists := relationship["target_id"].(float64)
+
+						relationshipType, relationshipTypeExists := relationship["type"].(string)
+
+						if !targetIDExists || !relationshipTypeExists {
+							return Response{
+								JSONRPC: "2.0",
+								ID:      req.ID,
+								Error:   &Error{Code: ErrCodeInvalidParams, Message: "invalid parameter: metadata.relationships"},
+							}
+						}
+
+						relationships = append(relationships, publish.Relationship{
+							TargetID: int(targetID),
+							Type:     relationshipType,
+						})
+					}
+				}
+
+				metadata.Relationships = relationships
+			}
+
+			publishReq.Metadata = metadata
+		}
+
+		result, err := s.service.Publish(ctx, publishReq)
 
 		if err != nil {
 			return Response{

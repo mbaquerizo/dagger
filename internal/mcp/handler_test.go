@@ -18,7 +18,7 @@ func TestMCPHandler_ToolsList(t *testing.T) {
 	}
 	defer mock.Close()
 
-	handler := NewMCPHandler(mock)
+	handler := NewMCPHandler(mock, "http://localhost:8080")
 
 	body := `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`
 	req := httptest.NewRequest("POST", "/mcp", strings.NewReader(body))
@@ -61,7 +61,7 @@ func TestMCPHandler_ToolsCallGetIssue(t *testing.T) {
 		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
 		WillReturnRows(pgxmock.NewRows([]string{"display_id", "title", "relation_type"}))
 
-	handler := NewMCPHandler(mock)
+	handler := NewMCPHandler(mock, "http://localhost:8080")
 
 	body := `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"get_issue","arguments":{"display_id":"DGR-42"}}}`
 	req := httptest.NewRequest("POST", "/mcp", strings.NewReader(body))
@@ -90,7 +90,7 @@ func TestMCPHandler_BadJSON(t *testing.T) {
 	}
 	defer mock.Close()
 
-	handler := NewMCPHandler(mock)
+	handler := NewMCPHandler(mock, "http://localhost:8080")
 
 	body := `not json`
 	req := httptest.NewRequest("POST", "/mcp", strings.NewReader(body))
