@@ -5,6 +5,25 @@ status: open
 tags:
   - phase-1
   - api
+children:
+  - DGR-7
+  - DGR-8
+  - DGR-6
+  - DGR-9
+  - DGR-10
+  - DGR-11
+  - DGR-12
+  - DGR-13
+  - DGR-14
+  - DGR-15
+  - DGR-16
+  - DGR-17
+  - DGR-18
+  - DGR-19
+  - DGR-20
+  - DGR-21
+  - DGR-22
+  - DGR-23
 ---
 
 # Phase 1 — Agent API
@@ -54,6 +73,14 @@ Build the Dagger API server: an HTTP service with PostgreSQL backend that allows
 - DGR-13: Create deployment configuration
 - DGR-14: Build landing page
 - DGR-15: DAG "dagger" adapter
+- DGR-16: Add PATCH endpoint to update issue status
+- DGR-17: Enforce API token project_id scoping
+- DGR-18: Add publish tool to MCP server
+- DGR-19: Show internal DB ID in rendered markdown outputs
+- DGR-20: Change list_issues default to "all" when status omitted
+- DGR-21: Support issue_relations in publish tool
+- DGR-22: Add add_issue_relation tool + API endpoint
+- DGR-23: Polish MCP tool descriptions
 
 ---
 
