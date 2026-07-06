@@ -255,7 +255,7 @@ func TestHandler_ListIssues_Success(t *testing.T) {
 	}
 }
 
-func TestHandler_ListIssues_DefaultsToOpen(t *testing.T) {
+func TestHandler_ListIssues_DefaultsToAll(t *testing.T) {
 	mockPool, err := pgxmock.NewPool()
 	if err != nil {
 		t.Fatalf("failed to create mock pool: %v", err)
@@ -263,10 +263,10 @@ func TestHandler_ListIssues_DefaultsToOpen(t *testing.T) {
 	t.Cleanup(func() { mockPool.Close() })
 
 	mockPool.ExpectQuery(`SELECT i.id, i.display_id, it.name`).
-		WithArgs("open", 1).
+		WithArgs("", 1).
 		WillReturnRows(pgxmock.NewRows([]string{"id", "display_id", "title", "status", "type_name", "parent_display_id"}))
 
-	// No ?status= query param — handler should default to "open"
+	// No ?status= query param — handler should default to "all"
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/issues", nil)
 	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
 

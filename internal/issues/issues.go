@@ -291,7 +291,7 @@ func ListIssues(ctx context.Context, pool poolIface, status string, workspaceID 
 		FROM issues i
 		JOIN issue_types it ON it.id = i.issue_type_id
 		LEFT JOIN issues p ON p.id = i.parent_id
-		WHERE i.status = $1 AND i.workspace_id = $2
+		WHERE ($1 = '' OR i.status = $1) AND i.workspace_id = $2
 	`
 
 	if authProjectID != nil {

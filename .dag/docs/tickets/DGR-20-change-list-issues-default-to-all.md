@@ -1,7 +1,7 @@
 ---
 id: DGR-20
 issueType: story
-status: open
+status: done
 tags:
   - mcp
 blockedBy: []

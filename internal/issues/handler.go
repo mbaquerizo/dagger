@@ -77,10 +77,6 @@ func NewListIssuesHandler(pool poolIface) http.HandlerFunc {
 
 		status := r.URL.Query().Get("status")
 
-		if status == "" {
-			status = "open"
-		}
-
 		issues, err := ListIssues(r.Context(), pool, status, workspaceID, projectIDPtr)
 
 		if err != nil {

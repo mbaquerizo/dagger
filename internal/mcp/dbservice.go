@@ -98,10 +98,6 @@ func (s *DBService) ListIssues(ctx context.Context, status string) (ToolResult, 
 		projectIDPtr = &projectID
 	}
 
-	if status == "" {
-		status = "open"
-	}
-
 	issues, err := issues.ListIssues(ctx, s.pool, status, workspaceID, projectIDPtr)
 
 	if err != nil {
