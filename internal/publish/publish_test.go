@@ -442,3 +442,240 @@ func TestPublish_DocWithMissingRelationshipTarget(t *testing.T) {
 		t.Errorf("expected error for missing relationship target, but got none")
 	}
 }
+
+func TestPublish_IssueWithIssueRelations(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Errorf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	issueType := "story"
+
+	mockPool.ExpectBegin()
+	mockPool.ExpectQuery("SELECT slug FROM projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"slug"}).AddRow("DGR"))
+	mockPool.ExpectQuery("UPDATE projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"next_display_number"}).AddRow(47))
+	mockPool.ExpectQuery("SELECT id FROM issue_types").
+		WithArgs(issueType).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(2))
+	mockPool.ExpectQuery("INSERT INTO issues").
+		WithArgs(pgxmock.AnyArg(), 2, pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(84))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(5, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectExec("INSERT INTO issue_relations").
+		WithArgs(84, 5, "blocks", "blocked_by").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mockPool.ExpectCommit()
+
+	req := PublishRequest{
+		Type:      "issue",
+		Title:     "Test Issue",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueType: &issueType,
+			IssueRelations: []IssueRelation{
+				{TargetID: 5, RelationType: "blocks"},
+			},
+		},
+	}
+
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
+
+	if err != nil {
+		t.Fatalf("Publish returned an error: %v", err)
+	}
+
+	if resp.ID != 84 {
+		t.Errorf("expected ID 84, but got %d", resp.ID)
+	}
+
+	if resp.DisplayID != "DGR-47" {
+		t.Errorf("expected DisplayID DGR-47, but got %s", resp.DisplayID)
+	}
+}
+
+func TestPublish_IssueWithSelfInverseRelation(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Errorf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	issueType := "story"
+
+	mockPool.ExpectBegin()
+	mockPool.ExpectQuery("SELECT slug FROM projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"slug"}).AddRow("DGR"))
+	mockPool.ExpectQuery("UPDATE projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"next_display_number"}).AddRow(47))
+	mockPool.ExpectQuery("SELECT id FROM issue_types").
+		WithArgs(issueType).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(2))
+	mockPool.ExpectQuery("INSERT INTO issues").
+		WithArgs(pgxmock.AnyArg(), 2, pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(84))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(5, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectExec("INSERT INTO issue_relations").
+		WithArgs(84, 5, "relates_to", "relates_to").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mockPool.ExpectCommit()
+
+	req := PublishRequest{
+		Type:      "issue",
+		Title:     "Test Issue",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueType: &issueType,
+			IssueRelations: []IssueRelation{
+				{TargetID: 5, RelationType: "relates_to"},
+			},
+		},
+	}
+
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
+
+	if err != nil {
+		t.Fatalf("Publish returned an error: %v", err)
+	}
+
+	if resp.ID != 84 {
+		t.Errorf("expected ID 84, but got %d", resp.ID)
+	}
+
+	if resp.DisplayID != "DGR-47" {
+		t.Errorf("expected DisplayID DGR-47, but got %s", resp.DisplayID)
+	}
+}
+
+func TestPublish_IssueWithMissingIssueRelationTarget(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Errorf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	issueType := "story"
+
+	mockPool.ExpectBegin()
+	mockPool.ExpectQuery("SELECT slug FROM projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"slug"}).AddRow("DGR"))
+	mockPool.ExpectQuery("UPDATE projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"next_display_number"}).AddRow(47))
+	mockPool.ExpectQuery("SELECT id FROM issue_types").
+		WithArgs(issueType).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(2))
+	mockPool.ExpectQuery("INSERT INTO issues").
+		WithArgs(pgxmock.AnyArg(), 2, pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(84))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(999, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(false))
+
+	req := PublishRequest{
+		Type:      "issue",
+		Title:     "Test Issue",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueType: &issueType,
+			IssueRelations: []IssueRelation{
+				{TargetID: 999, RelationType: "blocks"},
+			},
+		},
+	}
+
+	_, err = Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
+
+	if err == nil {
+		t.Errorf("expected error for missing issue_relations target, but got none")
+	}
+}
+
+func TestPublish_IssueWithBothRelationTypes(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Errorf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	issueType := "story"
+
+	mockPool.ExpectBegin()
+	mockPool.ExpectQuery("SELECT slug FROM projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"slug"}).AddRow("DGR"))
+	mockPool.ExpectQuery("UPDATE projects").
+		WithArgs(1, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"next_display_number"}).AddRow(47))
+	mockPool.ExpectQuery("SELECT id FROM issue_types").
+		WithArgs(issueType).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(2))
+	mockPool.ExpectQuery("INSERT INTO issues").
+		WithArgs(pgxmock.AnyArg(), 2, pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"id"}).AddRow(84))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM docs").
+		WithArgs(42, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectExec("INSERT INTO doc_issues").
+		WithArgs(42, 84, "motivates").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(5, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectExec("INSERT INTO issue_relations").
+		WithArgs(84, 5, "blocks", "blocked_by").
+		WillReturnResult(pgxmock.NewResult("INSERT", 1))
+	mockPool.ExpectCommit()
+
+	req := PublishRequest{
+		Type:      "issue",
+		Title:     "Test Issue",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueType: &issueType,
+			Relationships: []Relationship{
+				{TargetID: 42, Type: "motivates"},
+			},
+			IssueRelations: []IssueRelation{
+				{TargetID: 5, RelationType: "blocks"},
+			},
+		},
+	}
+
+	resp, err := Publish(context.Background(), mockPool, req, 1, "localhost:8080", nil)
+
+	if err != nil {
+		t.Fatalf("Publish returned an error: %v", err)
+	}
+
+	if resp.ID != 84 {
+		t.Errorf("expected ID 84, but got %d", resp.ID)
+	}
+
+	if resp.DisplayID != "DGR-47" {
+		t.Errorf("expected DisplayID DGR-47, but got %s", resp.DisplayID)
+	}
+}

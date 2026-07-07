@@ -12,6 +12,16 @@ type poolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
 }
 
+var issueRelationInverse = map[string]string{
+	"blocks":          "blocked_by",
+	"blocked_by":      "blocks",
+	"duplicates":      "duplicated_from",
+	"duplicated_from": "duplicates",
+	"relates_to":      "relates_to",
+	"causes":          "caused_by",
+	"caused_by":       "causes",
+}
+
 func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceID int, baseURL string, authProjectID *int) (*PublishResponse, error) {
 	tx, err := pool.Begin(ctx)
 
@@ -151,13 +161,12 @@ func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceI
 				SELECT 1 FROM %s
 				WHERE id = $1
 				AND workspace_id = $2
-			)
 		`
 
 		if authProjectID != nil {
-			err = tx.QueryRow(ctx, fmt.Sprintf(relationshipQuery, targetRelationshipTable)+" AND project_id = $3", rel.TargetID, workspaceID, *authProjectID).Scan(&targetExists)
+			err = tx.QueryRow(ctx, fmt.Sprintf(relationshipQuery, targetRelationshipTable)+" AND project_id = $3)", rel.TargetID, workspaceID, *authProjectID).Scan(&targetExists)
 		} else {
-			err = tx.QueryRow(ctx, fmt.Sprintf(relationshipQuery, targetRelationshipTable), rel.TargetID, workspaceID).Scan(&targetExists)
+			err = tx.QueryRow(ctx, fmt.Sprintf(relationshipQuery, targetRelationshipTable)+")", rel.TargetID, workspaceID).Scan(&targetExists)
 		}
 
 		if err != nil {
@@ -182,6 +191,44 @@ func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceI
 
 		if err != nil {
 			return nil, fmt.Errorf("inserting relationship: %w", err)
+		}
+	}
+
+	if entityType == "issues" {
+		var targetExists bool
+
+		for _, rel := range req.Metadata.IssueRelations {
+			issueRelationQuery := `
+				SELECT EXISTS(
+					SELECT 1 FROM issues
+					WHERE id = $1
+					AND workspace_id = $2
+			`
+
+			if authProjectID != nil {
+				err = tx.QueryRow(ctx, issueRelationQuery+" AND project_id = $3)", rel.TargetID, workspaceID, *authProjectID).Scan(&targetExists)
+			} else {
+				err = tx.QueryRow(ctx, issueRelationQuery+")", rel.TargetID, workspaceID).Scan(&targetExists)
+			}
+
+			if err != nil {
+				return nil, fmt.Errorf("checking issue relation target: %w", err)
+			}
+
+			if !targetExists {
+				return nil, fmt.Errorf("issue relation target issue %d not found", rel.TargetID)
+			}
+
+			_, err = tx.Exec(ctx, `
+				INSERT INTO issue_relations (source_issue_id, target_issue_id, relation_id)
+				VALUES
+					($1, $2, (SELECT id FROM relations WHERE name = $3)),
+					($2, $1, (SELECT id FROM relations WHERE name = $4))
+			`, insertedID, rel.TargetID, rel.RelationType, issueRelationInverse[rel.RelationType])
+
+			if err != nil {
+				return nil, fmt.Errorf("inserting issue relations: %w", err)
+			}
 		}
 	}
 

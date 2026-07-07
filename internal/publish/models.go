@@ -10,15 +10,21 @@ type PublishRequest struct {
 }
 
 type Metadata struct {
-	Status        *string        `json:"status"`
-	IssueType     *string        `json:"issueType"`
-	Tags          []string       `json:"tags"`
-	Relationships []Relationship `json:"relationships"`
+	Status         *string         `json:"status"`
+	IssueType      *string         `json:"issueType"`
+	Tags           []string        `json:"tags"`
+	Relationships  []Relationship  `json:"relationships"`
+	IssueRelations []IssueRelation `json:"issueRelations"`
 }
 
 type Relationship struct {
 	TargetID int    `json:"targetId"`
 	Type     string `json:"type"`
+}
+
+type IssueRelation struct {
+	TargetID     int    `json:"targetId"`
+	RelationType string `json:"relationType"`
 }
 
 type PublishResponse struct {

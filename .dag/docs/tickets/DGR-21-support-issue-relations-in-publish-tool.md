@@ -1,7 +1,7 @@
 ---
 id: DGR-21
 issueType: story
-status: open
+status: done
 tags:
   - mcp
   - publish

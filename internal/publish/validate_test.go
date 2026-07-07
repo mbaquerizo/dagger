@@ -129,3 +129,77 @@ func TestValidate_ValidDocRequest(t *testing.T) {
 		t.Error("expected no validation errors for valid doc request")
 	}
 }
+
+func TestValidate_IssueRelationsOnNonIssue(t *testing.T) {
+	request := PublishRequest{
+		Type:      "adr",
+		Title:     "Test Title",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueRelations: []IssueRelation{
+				{TargetID: 5, RelationType: "blocks"},
+			},
+		},
+	}
+
+	errs := Validate(request)
+
+	if len(errs) == 0 {
+		t.Error("expected validation error for issue_relations on non-issue type, got none")
+	}
+}
+
+func TestValidate_InvalidRelationType(t *testing.T) {
+	issueType := "story"
+
+	request := PublishRequest{
+		Type:      "issue",
+		Title:     "Test Title",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueType: &issueType,
+			IssueRelations: []IssueRelation{
+				{TargetID: 5, RelationType: "invalid"},
+			},
+		},
+	}
+
+	errs := Validate(request)
+
+	if len(errs) == 0 {
+		t.Error("expected validation error for invalid relation type, got none")
+	}
+}
+
+func TestValidate_ValidRelationTypes(t *testing.T) {
+	validTypes := []string{"blocks", "blocked_by", "duplicates", "duplicated_from", "relates_to", "causes", "caused_by"}
+	issueType := "story"
+
+	var relations []IssueRelation
+
+	for i, rt := range validTypes {
+		relations = append(relations, IssueRelation{
+			TargetID:     i + 1,
+			RelationType: rt,
+		})
+	}
+
+	request := PublishRequest{
+		Type:      "issue",
+		Title:     "Test Title",
+		Body:      "Test Body",
+		ProjectID: 1,
+		Metadata: Metadata{
+			IssueType:      &issueType,
+			IssueRelations: relations,
+		},
+	}
+
+	errs := Validate(request)
+
+	if len(errs) > 0 {
+		t.Errorf("expected no validation errors for valid relation types, got %d: %+v", len(errs), errs)
+	}
+}
