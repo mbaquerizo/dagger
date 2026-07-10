@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 
+	"github.com/mbaquerizo/dagger/internal/issues"
 	"github.com/mbaquerizo/dagger/internal/publish"
 )
 
@@ -58,6 +59,7 @@ type ToolService interface {
 	ListIssues(ctx context.Context, status string) (ToolResult, error)
 	UpdateIssueStatus(ctx context.Context, displayID string, newStatus string) (ToolResult, error)
 	Publish(ctx context.Context, req publish.PublishRequest) (ToolResult, error)
+	AddIssueRelation(ctx context.Context, req issues.AddIssueRelationRequest) (ToolResult, error)
 }
 
 type ToolResult struct {
@@ -114,6 +116,28 @@ func ListTools() []ToolDefinition {
 					},
 				},
 				Required: []string{"display_id", "status"},
+			},
+		},
+		{
+			Name:        "add_issue_relation",
+			Description: "Add issue to issue relationships. Handles bi-directional relation creation.",
+			InputSchema: InputSchema{
+				Type: "object",
+				Properties: map[string]PropertySchema{
+					"source_id": {
+						Type:        "number",
+						Description: "Internal ID of the source issue",
+					},
+					"target_id": {
+						Type:        "number",
+						Description: "Internal ID of the target issue",
+					},
+					"relation_type": {
+						Type:        "string",
+						Description: "Relation type (blocks, blocked_by, duplicates, duplicated_from, relates_to, causes, caused_by)",
+					},
+				},
+				Required: []string{"source_id", "target_id", "relation_type"},
 			},
 		},
 		{

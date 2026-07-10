@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 
+	"github.com/mbaquerizo/dagger/internal/issues"
 	"github.com/mbaquerizo/dagger/internal/publish"
 )
 
@@ -298,6 +299,58 @@ func (s *Server) handleToolCall(ctx context.Context, req Request) Response {
 		}
 
 		result, err := s.service.Publish(ctx, publishReq)
+
+		if err != nil {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInternal, Message: err.Error()},
+			}
+		}
+
+		return Response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Result:  result,
+		}
+	case "add_issue_relation":
+		sourceID, ok := args["source_id"].(float64)
+
+		if !ok || sourceID == 0 {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: source_id"},
+			}
+		}
+
+		targetID, ok := args["target_id"].(float64)
+
+		if !ok || targetID == 0 {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: target_id"},
+			}
+		}
+
+		relationType, ok := args["relation_type"].(string)
+
+		if !ok || relationType == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: relation_type"},
+			}
+		}
+
+		addIssueRelationReq := issues.AddIssueRelationRequest{
+			SourceID:     int(sourceID),
+			TargetID:     int(targetID),
+			RelationType: relationType,
+		}
+
+		result, err := s.service.AddIssueRelation(ctx, addIssueRelationReq)
 
 		if err != nil {
 			return Response{

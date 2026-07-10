@@ -2,21 +2,13 @@ package publish
 
 import (
 	"fmt"
+
+	"github.com/mbaquerizo/dagger/internal/issues"
 )
 
 type ValidationError struct {
 	Field   string `json:"field"`
 	Message string `json:"message"`
-}
-
-var relationTypes = map[string]bool{
-	"blocks":          true,
-	"blocked_by":      true,
-	"duplicates":      true,
-	"duplicated_from": true,
-	"relates_to":      true,
-	"causes":          true,
-	"caused_by":       true,
 }
 
 func Validate(req PublishRequest) []ValidationError {
@@ -72,7 +64,7 @@ func Validate(req PublishRequest) []ValidationError {
 		}
 
 		for i, relation := range req.Metadata.IssueRelations {
-			if !relationTypes[relation.RelationType] {
+			if !issues.RelationTypes[relation.RelationType] {
 				errs = append(errs, ValidationError{
 					Field:   fmt.Sprintf("metadata.issueType[%d].relationType", i),
 					Message: "issue relation must be one of: blocks, blocked_by, duplicates, duplicated_from, relates_to, causes, caused_by",

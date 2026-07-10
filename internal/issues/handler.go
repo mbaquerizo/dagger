@@ -142,3 +142,53 @@ func NewUpdateIssueStatusHandler(pool poolIface) http.HandlerFunc {
 		}
 	}
 }
+
+func NewAddIssueRelationHandler(pool poolIface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		workspaceID, ok := auth.WorkspaceIDFromContext(r.Context())
+
+		if !ok {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		projectID, ok := auth.ProjectIDFromContext(r.Context())
+
+		var projectIDPtr *int
+
+		if ok {
+			projectIDPtr = &projectID
+		}
+
+		var req AddIssueRelationRequest
+
+		err := json.NewDecoder(r.Body).Decode(&req)
+
+		if err != nil {
+			http.Error(w, "Invalid JSON", http.StatusBadRequest)
+			return
+		}
+
+		if !RelationTypes[req.RelationType] {
+			http.Error(w, "relationType must be one of: blocks, blocked_by, duplicates, duplicated_from, relates_to, causes, caused_by", http.StatusUnprocessableEntity)
+			return
+		}
+
+		err = AddIssueRelation(r.Context(), pool, req.SourceID, req.TargetID, req.RelationType, workspaceID, projectIDPtr)
+
+		if err != nil {
+			if errors.Is(err, ErrSelfRelation) {
+				http.Error(w, "sourceId and targetId cannot be the same", http.StatusUnprocessableEntity)
+				return
+			}
+
+			if errors.Is(err, ErrIssueNotFound) {
+				http.Error(w, "Issue not found", http.StatusNotFound)
+				return
+			}
+
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+	}
+}

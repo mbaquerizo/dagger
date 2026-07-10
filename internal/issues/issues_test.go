@@ -469,3 +469,88 @@ func TestUpdateIssueStatus_ValidStatus(t *testing.T) {
 		t.Errorf("expected success, but got error: %v", err)
 	}
 }
+
+func TestAddIssueRelation_Success(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(5, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(6, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectExec("INSERT INTO issue_relations").
+		WithArgs(5, 6, "blocks", "blocked_by").
+		WillReturnResult(pgxmock.NewResult("INSERT", 2))
+
+	err = AddIssueRelation(context.Background(), mockPool, 5, 6, "blocks", 1, nil)
+
+	if err != nil {
+		t.Errorf("expected success, but got error: %v", err)
+	}
+}
+
+func TestAddIssueRelation_SelfRelation(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	err = AddIssueRelation(context.Background(), mockPool, 5, 5, "blocks", 1, nil)
+
+	if err == nil {
+		t.Error("expected error for self-relation, got none")
+	}
+}
+
+func TestAddIssueRelation_SourceNotFound(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(999, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(false))
+
+	err = AddIssueRelation(context.Background(), mockPool, 999, 5, "blocks", 1, nil)
+
+	if !errors.Is(err, ErrIssueNotFound) {
+		t.Errorf("expected ErrIssueNotFound, got: %v", err)
+	}
+}
+
+func TestAddIssueRelation_TargetNotFound(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(5, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(999, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(false))
+
+	err = AddIssueRelation(context.Background(), mockPool, 5, 999, "blocks", 1, nil)
+
+	if !errors.Is(err, ErrIssueNotFound) {
+		t.Errorf("expected ErrIssueNotFound, got: %v", err)
+	}
+}

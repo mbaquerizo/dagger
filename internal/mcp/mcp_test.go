@@ -80,8 +80,8 @@ func TestResponseMarshalError(t *testing.T) {
 
 func TestListTools(t *testing.T) {
 	tools := ListTools()
-	if len(tools) != 5 {
-		t.Fatalf("got %d tools, want 5", len(tools))
+	if len(tools) != 6 {
+		t.Fatalf("got %d tools, want 6", len(tools))
 	}
 	names := make(map[string]bool)
 	for _, tool := range tools {

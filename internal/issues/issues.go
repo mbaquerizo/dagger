@@ -11,6 +11,7 @@ import (
 
 var ErrIssueNotFound = errors.New("issue not found")
 var ErrProjectIDMismatch = errors.New("issue project_id does not match auth context")
+var ErrSelfRelation = errors.New("source and target issue must be different")
 
 type poolIface interface {
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
@@ -357,6 +358,63 @@ func UpdateIssueStatus(ctx context.Context, pool poolIface, req UpdateStatusRequ
 
 	if result.RowsAffected() == 0 {
 		return ErrIssueNotFound
+	}
+
+	return nil
+}
+
+func AddIssueRelation(ctx context.Context, pool poolIface, sourceID int, targetID int, relationType string, workspaceID int, authProjectID *int) error {
+	if sourceID == targetID {
+		return ErrSelfRelation
+	}
+
+	for _, id := range []int{sourceID, targetID} {
+		var issueExists bool
+		existenceQuery := `
+			SELECT EXISTS(
+				SELECT 1 FROM issues
+				WHERE id = $1
+				AND workspace_id = $2
+		`
+
+		var err error
+
+		if authProjectID != nil {
+			err = pool.QueryRow(
+				ctx,
+				existenceQuery+" AND project_id = $3)",
+				id,
+				workspaceID,
+				authProjectID,
+			).Scan(&issueExists)
+
+		} else {
+			err = pool.QueryRow(
+				ctx,
+				existenceQuery+" )",
+				id,
+				workspaceID,
+			).Scan(&issueExists)
+		}
+
+		if err != nil {
+			return fmt.Errorf("querying source and/or target issue: %w", err)
+		}
+
+		if !issueExists {
+			return ErrIssueNotFound
+		}
+	}
+
+	_, err := pool.Exec(ctx, `
+				INSERT INTO issue_relations (source_issue_id, target_issue_id, relation_id)
+				VALUES
+					($1, $2, (SELECT id FROM relations WHERE name = $3)),
+					($2, $1, (SELECT id FROM relations WHERE name = $4))
+			`, sourceID, targetID, relationType, RelationInverse[relationType])
+
+	if err != nil {
+		return fmt.Errorf("inserting issue relations: %w", err)
 	}
 
 	return nil

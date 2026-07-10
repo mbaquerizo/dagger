@@ -186,3 +186,28 @@ func (s *DBService) Publish(ctx context.Context, req publish.PublishRequest) (To
 		Content: []ContentItem{{Type: "text", Text: string(result)}},
 	}, nil
 }
+
+func (s *DBService) AddIssueRelation(ctx context.Context, req issues.AddIssueRelationRequest) (ToolResult, error) {
+	workspaceID, ok := auth.WorkspaceIDFromContext(ctx)
+
+	if !ok {
+		return ToolResult{}, fmt.Errorf("unauthorized")
+	}
+
+	projectID, hasProjectID := auth.ProjectIDFromContext(ctx)
+	var projectIDPtr *int
+
+	if hasProjectID {
+		projectIDPtr = &projectID
+	}
+
+	err := issues.AddIssueRelation(ctx, s.pool, req.SourceID, req.TargetID, req.RelationType, workspaceID, projectIDPtr)
+
+	if err != nil {
+		return ToolResult{}, err
+	}
+
+	return ToolResult{
+		Content: []ContentItem{{Type: "text", Text: fmt.Sprintf("Added issue relations: Issue %d %s Issue %d and Issue %d %s Issue %d", req.SourceID, req.RelationType, req.TargetID, req.TargetID, issues.RelationInverse[req.RelationType], req.SourceID)}},
+	}, nil
+}

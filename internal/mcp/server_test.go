@@ -38,8 +38,8 @@ func TestServer_ToolsList(t *testing.T) {
 		t.Fatal("result.tools should be []ToolDefinition")
 	}
 
-	if len(tools) != 5 {
-		t.Fatalf("got %d tools, want 5", len(tools))
+	if len(tools) != 6 {
+		t.Fatalf("got %d tools, want 6", len(tools))
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -211,6 +211,50 @@ func TestServer_ToolsCallUpdateStatus(t *testing.T) {
 	if resp.Error != nil {
 		t.Fatalf("unexpected error: %+v", resp.Error)
 	}
+	result, ok := resp.Result.(ToolResult)
+	if !ok {
+		t.Fatal("result should be a ToolResult")
+	}
+	if len(result.Content) != 1 {
+		t.Fatalf("got %d content items, want 1", len(result.Content))
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestServer_ToolsCallAddIssueRelation(t *testing.T) {
+	mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherAny))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	mock.ExpectQuery(".*").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectQuery(".*").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mock.ExpectExec(".*").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnResult(pgxmock.NewResult("INSERT", 2))
+
+	svc := NewDBService(mock, "http://localhost:8080")
+	server := NewServer(svc)
+	ctx := auth.WithWorkspaceID(context.Background(), 1)
+
+	resp := callTool(ctx, server, "add_issue_relation", map[string]interface{}{
+		"source_id":     float64(5),
+		"target_id":     float64(6),
+		"relation_type": "blocks",
+	})
+
+	if resp.Error != nil {
+		t.Fatalf("unexpected error: %+v", resp.Error)
+	}
+
 	result, ok := resp.Result.(ToolResult)
 	if !ok {
 		t.Fatal("result should be a ToolResult")

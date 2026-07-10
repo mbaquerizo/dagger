@@ -368,3 +368,162 @@ func TestHandler_UpdateIssueStatus_ErrInvalidStatus(t *testing.T) {
 		t.Errorf("expected 422, got %d", w.Code)
 	}
 }
+
+func TestHandler_AddIssueRelation_Success(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(5, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(6, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(true))
+	mockPool.ExpectExec("INSERT INTO issue_relations").
+		WithArgs(5, 6, "blocks", "blocked_by").
+		WillReturnResult(pgxmock.NewResult("INSERT", 2))
+
+	req := AddIssueRelationRequest{
+		SourceID:     5,
+		TargetID:     6,
+		RelationType: "blocks",
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/issues/relations", bytes.NewReader(body))
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewAddIssueRelationHandler(mockPool)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", w.Code)
+	}
+
+	if err := mockPool.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestHandler_AddIssueRelation_InvalidRelationType(t *testing.T) {
+	req := AddIssueRelationRequest{
+		SourceID:     5,
+		TargetID:     6,
+		RelationType: "invalid",
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/issues/relations", bytes.NewReader(body))
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewAddIssueRelationHandler(nil)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Errorf("expected 422, got %d", w.Code)
+	}
+}
+
+func TestHandler_AddIssueRelation_SelfRelation(t *testing.T) {
+	req := AddIssueRelationRequest{
+		SourceID:     5,
+		TargetID:     5,
+		RelationType: "blocks",
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/issues/relations", bytes.NewReader(body))
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewAddIssueRelationHandler(nil)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Errorf("expected 422, got %d", w.Code)
+	}
+}
+
+func TestHandler_AddIssueRelation_NotFound(t *testing.T) {
+	mockPool, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatalf("failed to create mock pool: %v", err)
+	}
+	t.Cleanup(func() { mockPool.Close() })
+
+	mockPool.ExpectQuery("SELECT EXISTS.*FROM issues").
+		WithArgs(999, 1).
+		WillReturnRows(pgxmock.NewRows([]string{"exists"}).AddRow(false))
+
+	req := AddIssueRelationRequest{
+		SourceID:     999,
+		TargetID:     5,
+		RelationType: "blocks",
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/issues/relations", bytes.NewReader(body))
+	r = r.WithContext(auth.WithWorkspaceID(r.Context(), 1))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewAddIssueRelationHandler(mockPool)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusNotFound {
+		t.Errorf("expected 404, got %d", w.Code)
+	}
+}
+
+func TestHandler_AddIssueRelation_NoWorkspace(t *testing.T) {
+	req := AddIssueRelationRequest{
+		SourceID:     5,
+		TargetID:     6,
+		RelationType: "blocks",
+	}
+
+	body, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("failed to marshal request: %v", err)
+	}
+
+	r := httptest.NewRequest(http.MethodPost, "/api/v1/issues/relations", bytes.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	handler := NewAddIssueRelationHandler(nil)
+	handler.ServeHTTP(w, r)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", w.Code)
+	}
+}

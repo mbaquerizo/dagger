@@ -6,20 +6,11 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/mbaquerizo/dagger/internal/issues"
 )
 
 type poolIface interface {
 	Begin(context.Context) (pgx.Tx, error)
-}
-
-var issueRelationInverse = map[string]string{
-	"blocks":          "blocked_by",
-	"blocked_by":      "blocks",
-	"duplicates":      "duplicated_from",
-	"duplicated_from": "duplicates",
-	"relates_to":      "relates_to",
-	"causes":          "caused_by",
-	"caused_by":       "causes",
 }
 
 func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceID int, baseURL string, authProjectID *int) (*PublishResponse, error) {
@@ -224,7 +215,7 @@ func Publish(ctx context.Context, pool poolIface, req PublishRequest, workspaceI
 				VALUES
 					($1, $2, (SELECT id FROM relations WHERE name = $3)),
 					($2, $1, (SELECT id FROM relations WHERE name = $4))
-			`, insertedID, rel.TargetID, rel.RelationType, issueRelationInverse[rel.RelationType])
+			`, insertedID, rel.TargetID, rel.RelationType, issues.RelationInverse[rel.RelationType])
 
 			if err != nil {
 				return nil, fmt.Errorf("inserting issue relations: %w", err)

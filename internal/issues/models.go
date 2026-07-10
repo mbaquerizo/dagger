@@ -48,3 +48,9 @@ type UpdateStatusRequest struct {
 	// Valid values: "open", "in-progress", "in-review", "done", "closed"
 	Status string `json:"status"`
 }
+
+type AddIssueRelationRequest struct {
+	SourceID     int    `json:"sourceId"`
+	TargetID     int    `json:"targetId"`
+	RelationType string `json:"relationType"`
+}

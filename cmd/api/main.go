@@ -59,6 +59,8 @@ func main() {
 
 	r.Patch("/api/v1/issues/{displayId}/status", issues.NewUpdateIssueStatusHandler(pool))
 
+	r.Post("/api/v1/issues/relations", issues.NewAddIssueRelationHandler(pool))
+
 	log.Println("server starting on :8080")
 
 	http.ListenAndServe(":8080", r)
