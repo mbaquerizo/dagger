@@ -75,7 +75,7 @@ func ListTools() []ToolDefinition {
 	return []ToolDefinition{
 		{
 			Name:        "get_issue",
-			Description: "Fetch an issue with full context as markdown",
+			Description: "Fetch an issue by display ID with full context (linked docs, parent, children, related issues) as markdown. Includes YAML frontmatter with internal id, display_id, status, type, and parent info.",
 			InputSchema: InputSchema{
 				Type: "object",
 				Properties: map[string]PropertySchema{
@@ -89,20 +89,20 @@ func ListTools() []ToolDefinition {
 		},
 		{
 			Name:        "list_issues",
-			Description: "List issues with optional status filter",
+			Description: "List all issues in the project as JSON. Optionally filter by status (open, in-progress, in-review, done, closed). When status is omitted, returns all issues. Each issue includes id, displayId, title, status, type, and parentDisplayId.",
 			InputSchema: InputSchema{
 				Type: "object",
 				Properties: map[string]PropertySchema{
 					"status": {
 						Type:        "string",
-						Description: "Filter by status (open, in-progress, in-review, done, closed)",
+						Description: "Filter by status (open, in-progress, in-review, done, closed). Omit to return all issues.",
 					},
 				},
 			},
 		},
 		{
 			Name:        "update_issue_status",
-			Description: "Update an issue's status",
+			Description: "Update an issue's status by display ID. Valid status values: open, in-progress, in-review, done, closed.",
 			InputSchema: InputSchema{
 				Type: "object",
 				Properties: map[string]PropertySchema{
@@ -120,7 +120,7 @@ func ListTools() []ToolDefinition {
 		},
 		{
 			Name:        "add_issue_relation",
-			Description: "Add issue to issue relationships. Handles bi-directional relation creation.",
+			Description: "Create a bi-directional relationship between two issues by internal ID. Accepts source_id, target_id, and relation_type (blocks, blocked_by, duplicates, duplicated_from, relates_to, causes, caused_by). Returns the created relationship.",
 			InputSchema: InputSchema{
 				Type: "object",
 				Properties: map[string]PropertySchema{
@@ -142,7 +142,7 @@ func ListTools() []ToolDefinition {
 		},
 		{
 			Name:        "get_doc",
-			Description: "Fetch a document as markdown",
+			Description: "Fetch a document by display ID as markdown. Includes YAML frontmatter with internal id, display_id, status, and type.",
 			InputSchema: InputSchema{
 				Type: "object",
 				Properties: map[string]PropertySchema{
@@ -156,7 +156,7 @@ func ListTools() []ToolDefinition {
 		},
 		{
 			Name:        "publish",
-			Description: "Publish a document (including issues)",
+			Description: "Create a new document or issue. Accepts type (issue, adr, pitch, ce), title, body, project_id, optional parent_id, and nested metadata (issue_type, status, tags, relationships, issue_relations). Returns the created id, displayId, and url.",
 			InputSchema: InputSchema{
 				Type: "object",
 				Properties: map[string]PropertySchema{
