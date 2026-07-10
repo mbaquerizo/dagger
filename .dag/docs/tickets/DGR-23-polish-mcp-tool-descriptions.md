@@ -1,7 +1,7 @@
 ---
 id: DGR-23
 issueType: task
-status: open
+status: in-review
 tags:
   - mcp
 blockedBy: []
