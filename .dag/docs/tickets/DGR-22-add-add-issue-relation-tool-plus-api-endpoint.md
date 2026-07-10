@@ -1,7 +1,7 @@
 ---
 id: DGR-22
 issueType: story
-status: open
+status: done
 tags:
   - mcp
   - api
