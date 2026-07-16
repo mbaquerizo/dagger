@@ -57,8 +57,8 @@ type ToolDefinition struct {
 
 type InputSchema struct {
 	Type       string                    `json:"type"`
-	Properties map[string]PropertySchema `json:"properties"`
-	Required   []string                  `json:"required"`
+	Properties map[string]PropertySchema `json:"properties,omitempty"`
+	Required   []string                  `json:"required,omitempty"`
 }
 
 type PropertySchema struct {
