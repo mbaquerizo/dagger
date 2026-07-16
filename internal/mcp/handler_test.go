@@ -83,6 +83,66 @@ func TestMCPHandler_ToolsCallGetIssue(t *testing.T) {
 	}
 }
 
+func TestMCPHandler_Initialize(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	handler := NewMCPHandler(mock, "http://localhost:8080")
+
+	body := `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}`
+	req := httptest.NewRequest("POST", "/mcp", strings.NewReader(body))
+	req = req.WithContext(auth.WithWorkspaceID(req.Context(), 1))
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+
+	var resp Response
+	if err := json.NewDecoder(rec.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.Error != nil {
+		t.Fatalf("unexpected error: %+v", resp.Error)
+	}
+	if resp.Result == nil {
+		t.Fatal("result should not be nil")
+	}
+}
+
+func TestMCPHandler_NotificationsInitialized(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	handler := NewMCPHandler(mock, "http://localhost:8080")
+
+	body := `{"jsonrpc":"2.0","method":"notifications/initialized"}`
+	req := httptest.NewRequest("POST", "/mcp", strings.NewReader(body))
+	req = req.WithContext(auth.WithWorkspaceID(req.Context(), 1))
+	rec := httptest.NewRecorder()
+
+	handler(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("expected empty body for notification, got %q", rec.Body.String())
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestMCPHandler_BadJSON(t *testing.T) {
 	mock, err := pgxmock.NewPool()
 	if err != nil {

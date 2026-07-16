@@ -35,6 +35,10 @@ func NewMCPHandler(pool poolIface, baseURL string) http.HandlerFunc {
 
 		resp := server.HandleRequest(r.Context(), req)
 
+		if resp.JSONRPC == "" {
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}

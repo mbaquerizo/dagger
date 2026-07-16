@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/mbaquerizo/dagger/internal/auth"
@@ -308,6 +309,161 @@ func TestServer_ToolsCallPublish(t *testing.T) {
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestServer_Initialize(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	svc := NewDBService(mock, "http://localhost:8080")
+	server := NewServer(svc)
+
+	tests := []struct {
+		name        string
+		params      map[string]interface{}
+		wantVersion string
+	}{
+		{"2024-11-05", map[string]interface{}{"protocolVersion": "2024-11-05"}, "2024-11-05"},
+		{"2025-03-26", map[string]interface{}{"protocolVersion": "2025-03-26"}, "2025-03-26"},
+		{"2025-06-18", map[string]interface{}{"protocolVersion": "2025-06-18"}, "2025-06-18"},
+		{"2025-11-25", map[string]interface{}{"protocolVersion": "2025-11-25"}, "2025-11-25"},
+		{"unknown version defaults to latest", map[string]interface{}{"protocolVersion": "1.0.0"}, "2025-11-25"},
+		{"empty version defaults to latest", map[string]interface{}{"protocolVersion": ""}, "2025-11-25"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp := server.HandleRequest(context.Background(), Request{
+				JSONRPC: "2.0",
+				ID:      1,
+				Method:  "initialize",
+				Params:  tt.params,
+			})
+
+			if resp.Error != nil {
+				t.Fatalf("unexpected error: %+v", resp.Error)
+			}
+
+			result, ok := resp.Result.(InitializeResult)
+			if !ok {
+				t.Fatal("result should be InitializeResult")
+			}
+			if result.ProtocolVersion != tt.wantVersion {
+				t.Errorf("ProtocolVersion = %q, want %q", result.ProtocolVersion, tt.wantVersion)
+			}
+			if result.ServerInfo.Name == "" {
+				t.Error("ServerInfo.Name should not be empty")
+			}
+			if result.ServerInfo.Version == "" {
+				t.Error("ServerInfo.Version should not be empty")
+			}
+		})
+	}
+
+	t.Run("missing params", func(t *testing.T) {
+		resp := server.HandleRequest(context.Background(), Request{
+			JSONRPC: "2.0",
+			ID:      1,
+			Method:  "initialize",
+		})
+
+		if resp.Error == nil {
+			t.Fatal("expected error for missing params, got nil")
+		}
+		if resp.Error.Code != ErrCodeInvalidParams {
+			t.Errorf("error code = %d, want %d", resp.Error.Code, ErrCodeInvalidParams)
+		}
+	})
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestServer_NotificationsInitialized(t *testing.T) {
+	mock, err := pgxmock.NewPool()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	svc := NewDBService(mock, "http://localhost:8080")
+	server := NewServer(svc)
+
+	resp := server.HandleRequest(context.Background(), Request{
+		JSONRPC: "2.0",
+		Method:  "notifications/initialized",
+	})
+
+	if resp.JSONRPC != "" {
+		t.Error("expected empty JSONRPC for notification")
+	}
+	if resp.Result != nil {
+		t.Error("expected nil result for notification")
+	}
+	if resp.Error != nil {
+		t.Errorf("unexpected error: %+v", resp.Error)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestServer_InitializeResult_Marshal(t *testing.T) {
+	result := InitializeResult{
+		ProtocolVersion: "2025-03-26",
+		ServerCapabilities: ServerCapabilities{
+			Tools: struct{}{},
+		},
+		ServerInfo: ServerInfo{
+			Name:    "dagger-mcp",
+			Version: "1.0.0",
+		},
+	}
+
+	data, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var m map[string]interface{}
+	if err := json.Unmarshal(data, &m); err != nil {
+		t.Fatal(err)
+	}
+
+	if m["protocolVersion"] != "2025-03-26" {
+		t.Errorf("protocolVersion = %v, want 2025-03-26", m["protocolVersion"])
+	}
+
+	caps, ok := m["capabilities"].(map[string]interface{})
+	if !ok {
+		t.Fatal("capabilities should be an object")
+	}
+
+	tools, ok := caps["tools"]
+	if !ok {
+		t.Fatal("capabilities.tools should be present")
+	}
+
+	toolsObj, ok := tools.(map[string]interface{})
+	if !ok {
+		t.Fatalf("capabilities.tools should be an object, got %T", tools)
+	}
+	if len(toolsObj) != 0 {
+		t.Errorf("capabilities.tools should be empty, got %v", toolsObj)
+	}
+
+	info, ok := m["serverInfo"].(map[string]interface{})
+	if !ok {
+		t.Fatal("serverInfo should be an object")
+	}
+	if info["name"] != "dagger-mcp" {
+		t.Errorf("serverInfo.name = %v, want dagger-mcp", info["name"])
 	}
 }
 

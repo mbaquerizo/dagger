@@ -17,6 +17,10 @@ func NewServer(service ToolService) *Server {
 
 func (s *Server) HandleRequest(ctx context.Context, req Request) Response {
 	switch req.Method {
+	case "initialize":
+		return s.handleInitialize(req)
+	case "notifications/initialized":
+		return s.handleNotificationsInitialized()
 	case "tools/list":
 		return s.handleToolList(req)
 	case "tools/call":
@@ -28,6 +32,52 @@ func (s *Server) HandleRequest(ctx context.Context, req Request) Response {
 			Error:   &Error{Code: ErrCodeMethodNotFound, Message: "method not found: " + req.Method},
 		}
 	}
+}
+
+func (s *Server) handleInitialize(req Request) Response {
+	params, ok := req.Params.(map[string]interface{})
+
+	if !ok {
+		return Response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Error:   &Error{Code: ErrCodeInvalidParams, Message: "invalid params"},
+		}
+	}
+
+	clientProtocolVersion, _ := params["protocolVersion"].(string)
+
+	switch clientProtocolVersion {
+	case "2024-11-05":
+	case "2025-03-26":
+	case "2025-06-18":
+	case "2025-11-25":
+	default:
+		clientProtocolVersion = "2025-11-25"
+	}
+
+	var tools struct{}
+
+	result := InitializeResult{
+		ProtocolVersion: clientProtocolVersion,
+		ServerCapabilities: ServerCapabilities{
+			Tools: tools,
+		},
+		ServerInfo: ServerInfo{
+			Name:    "dagger-mcp",
+			Version: "1.0.0",
+		},
+	}
+
+	return Response{
+		JSONRPC: "2.0",
+		ID:      req.ID,
+		Result:  result,
+	}
+}
+
+func (s *Server) handleNotificationsInitialized() Response {
+	return Response{}
 }
 
 func (s *Server) handleToolList(req Request) Response {

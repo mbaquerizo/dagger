@@ -29,6 +29,21 @@ type Response struct {
 	Error   *Error      `json:"error,omitempty"`
 }
 
+type InitializeResult struct {
+	ProtocolVersion    string             `json:"protocolVersion"`
+	ServerCapabilities ServerCapabilities `json:"capabilities"`
+	ServerInfo         ServerInfo         `json:"serverInfo"`
+}
+
+type ServerCapabilities struct {
+	Tools struct{} `json:"tools"`
+}
+
+type ServerInfo struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+}
+
 type Error struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
