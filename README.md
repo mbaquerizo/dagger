@@ -40,28 +40,4 @@ Agents interface via the Dagger AI secure API. It gets a focused version of the 
 
 ## Development
 
-Prerequisites: Go 1.26+
-
-Setup:
-```
-git clone <repo>
-cd dagger
-go mod tidy
-```
-
-Run migrations:
-```
-make migrate
-```
-
-Run:
-```
-make run
-# or: go run ./cmd/api
-```
-
-Health check:
-```
-curl http://localhost:8080/healthz
-# → OK
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, migrations, and deployment (Railway + Supabase).
