@@ -233,6 +233,7 @@ func ListTools() []ToolDefinition {
 						},
 					},
 				},
+				Required: []string{"type", "title", "body", "project_id"},
 			},
 		},
 	}

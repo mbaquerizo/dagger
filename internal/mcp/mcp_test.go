@@ -246,6 +246,7 @@ func TestToolParams(t *testing.T) {
 			if !ok {
 				t.Fatal("missing metadata.issue_type")
 			}
+
 			if ip.Type != "string" {
 				t.Errorf("metadata.issue_type type = %q, want string", ip.Type)
 			}
