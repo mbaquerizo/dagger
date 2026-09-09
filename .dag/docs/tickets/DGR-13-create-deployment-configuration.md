@@ -1,7 +1,7 @@
 ---
 id: DGR-13
 issueType: task
-status: open
+status: done
 tags:
   - phase-1
   - deployment
