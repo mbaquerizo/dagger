@@ -62,10 +62,10 @@ type InputSchema struct {
 }
 
 type PropertySchema struct {
-	Type        string       `json:"type"`
-	Description string       `json:"description"`
-	Items       *InputSchema `json:"items,omitempty"`
-	Properties  *InputSchema `json:"properties,omitempty"`
+	Type        string                    `json:"type"`
+	Description string                    `json:"description"`
+	Items       *InputSchema              `json:"items,omitempty"`
+	Properties  map[string]PropertySchema `json:"properties,omitempty"`
 }
 
 type ToolService interface {
@@ -198,45 +198,41 @@ func ListTools() []ToolDefinition {
 					"metadata": {
 						Type:        "object",
 						Description: "Optional document metadata",
-						Properties: &InputSchema{
-							Type: "object",
-							Properties: map[string]PropertySchema{
-								"issue_type": {
-									Type:        "string",
-									Description: "Type of issue, one of: epic, story, task, bug, spike. Required when document type is 'issue'",
-								},
-								"status": {
-									Type:        "string",
-									Description: "Optional initial document status. Defaults to 'open' if issue, 'proposed' if document",
-								},
-								"tags": {
-									Type:        "array",
-									Description: "Array of strings representing keywords related to the document",
-									Items:       &InputSchema{Type: "string"},
-								},
-								"relationships": {
-									Type:        "array",
-									Description: "Array of {target_id,type} objects describing related cross-type documents. Not for doc↔doc or issue↔issue relationships",
-									Items: &InputSchema{
-										Type: "object",
-										Properties: map[string]PropertySchema{
-											"target_id": {
-												Type:        "number",
-												Description: "ID of related document",
-											},
-											"type": {
-												Type:        "string",
-												Description: "Type of relationship",
-											},
+						Properties: map[string]PropertySchema{
+							"issue_type": {
+								Type:        "string",
+								Description: "Type of issue, one of: epic, story, task, bug, spike. Required when document type is 'issue'",
+							},
+							"status": {
+								Type:        "string",
+								Description: "Optional initial document status. Defaults to 'open' if issue, 'proposed' if document",
+							},
+							"tags": {
+								Type:        "array",
+								Description: "Array of strings representing keywords related to the document",
+								Items:       &InputSchema{Type: "string"},
+							},
+							"relationships": {
+								Type:        "array",
+								Description: "Array of {target_id,type} objects describing related cross-type documents. Not for doc↔doc or issue↔issue relationships",
+								Items: &InputSchema{
+									Type: "object",
+									Properties: map[string]PropertySchema{
+										"target_id": {
+											Type:        "number",
+											Description: "ID of related document",
 										},
-										Required: []string{"target_id", "type"},
+										"type": {
+											Type:        "string",
+											Description: "Type of relationship",
+										},
 									},
+									Required: []string{"target_id", "type"},
 								},
 							},
 						},
 					},
 				},
-				Required: []string{"type", "title", "body", "project_id"},
 			},
 		},
 	}

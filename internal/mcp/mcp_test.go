@@ -242,19 +242,16 @@ func TestToolParams(t *testing.T) {
 			meta := p.Properties
 
 			// issue_type
-			ip, ok := meta.Properties["issue_type"]
+			ip, ok := meta["issue_type"]
 			if !ok {
 				t.Fatal("missing metadata.issue_type")
-			}
-			if contains(meta.Required, "issue_type") {
-				t.Error("metadata.issue_type should be optional")
 			}
 			if ip.Type != "string" {
 				t.Errorf("metadata.issue_type type = %q, want string", ip.Type)
 			}
 
 			// status
-			sp, ok := meta.Properties["status"]
+			sp, ok := meta["status"]
 			if !ok {
 				t.Fatal("missing metadata.status")
 			}
@@ -263,7 +260,7 @@ func TestToolParams(t *testing.T) {
 			}
 
 			// tags
-			tp, ok := meta.Properties["tags"]
+			tp, ok := meta["tags"]
 			if !ok {
 				t.Fatal("missing metadata.tags")
 			}
@@ -275,7 +272,7 @@ func TestToolParams(t *testing.T) {
 			}
 
 			// relationships
-			rp, ok := meta.Properties["relationships"]
+			rp, ok := meta["relationships"]
 			if !ok {
 				t.Fatal("missing metadata.relationships")
 			}
