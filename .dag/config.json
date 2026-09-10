@@ -1,16 +1,17 @@
 {
   "adapters": {
     "documentation": {
-      "type": "local",
+      "type": "dagger",
       "config": {
-        "adrPath": "./.dag/docs/adr"
+        "url": "https://dagger-production.up.railway.app",
+        "project_id": 1
       }
     },
     "issue-tracking": {
-      "type": "local",
+      "type": "dagger",
       "config": {
-        "project": "DGR",
-        "ticketPath": "./.dag/docs/tickets"
+        "url": "https://dagger-production.up.railway.app",
+        "project_id": 1
       }
     }
   }
