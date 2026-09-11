@@ -1,4 +1,4 @@
-name: ci
+name: ci-api
 
 on:
   push:
@@ -6,8 +6,12 @@ on:
   pull_request:
     branches: [main]
 
+defaults:
+  run:
+    working-directory: ./api
+
 jobs:
-  ci:
+  ci-api:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

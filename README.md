@@ -40,4 +40,14 @@ Agents interface via the Dagger AI secure API. It gets a focused version of the 
 
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, migrations, and deployment (Railway + Supabase).
+Prerequisites: Go 1.26+. The API lives in `api/` (one service of the
+monorepo; `web/` and `app/` join it later).
+
+```
+cd api
+cp .env.example .env  # fill in DB_URL + BASE_URL (Supabase, no local DB)
+go mod tidy
+make migrate
+make run
+# health: curl http://localhost:8080/healthz → OK
+```

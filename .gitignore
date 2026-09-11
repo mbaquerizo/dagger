@@ -1,8 +1,8 @@
 # Binaries
-/api
-/migrate
-/mcp
-/tmp/
+/api/api
+/api/migrate
+/api/mcp
+/api/tmp/
 
 # IDE
 .idea/
