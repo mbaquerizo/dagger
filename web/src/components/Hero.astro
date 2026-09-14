@@ -1,0 +1,120 @@
+---
+import Divider from './Divider.astro';
+
+// Page hero. Owns the silver field, pointer glow, headline glint,
+// and primary CTA glint. Glint vars set from the page script.
+interface Props {
+  keyHref: string;
+  githubHref: string;
+}
+const { keyHref, githubHref } = Astro.props;
+---
+<header id="top" data-hero>
+  <div class="mx-auto w-full max-w-4xl px-6 py-24">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500">Dagger 🗡 — alpha</p>
+    <h1 data-headline class="mt-4 pb-[0.15em] -mb-[0.15em] text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+      Docs Augmented Generation,<br />served sharp to your agent.
+    </h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
+      Dagger is where your product documents live, and where your agent reads them from.
+      A blazing-fast text interface for agents, with everything they need and nothing they don't.
+      Tell your agent
+      <span class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm text-slate-800">Work on DGR-42</span>
+      and it starts with full context: idea, decisions, acceptance criteria.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href={keyHref}
+        data-cta
+        class="rounded-md bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700"
+      >Request an API key</a>
+      <a
+        href={githubHref}
+        class="rounded-md border border-silver-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-silver-400 hover:bg-silver-50"
+      >GitHub</a>
+    </div>
+  </div>
+  <Divider />
+</header>
+
+<style>
+  [data-hero] {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+      radial-gradient(720px 300px at 50% -40px, #eef2f7 0%, transparent 70%),
+      linear-gradient(180deg, #f8fafc 0%, #fbfcfe 100%);
+  }
+
+  /* Faint pointer glow. Fades in on first hover so rest stays clean. */
+  [data-hero]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      420px 220px at var(--hx, 50%) var(--hy, 0%),
+      rgba(255, 255, 255, 0.55),
+      transparent 70%
+    );
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  [data-hero][data-glow]::after {
+    opacity: 1;
+  }
+
+  /* Headline glint. At rest the gradient sits on base color: plain ink. */
+  [data-headline] {
+    background-image: linear-gradient(
+      110deg,
+      #0f172a 20%,
+      #0f172a 40%,
+      #b6c2d2 47%,
+      #ffffff 50%,
+      #b6c2d2 53%,
+      #0f172a 60%,
+      #0f172a 80%
+    );
+    background-size: 300% 100%;
+    background-position: var(--tp, 0%) 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* CTA glint on hover only. Rest never moves. */
+  [data-cta] {
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-cta]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 70%
+    );
+    transform: translateX(-130%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+  }
+
+  [data-cta]:hover::after {
+    transform: translateX(130%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-hero]::after,
+    [data-cta]::after {
+      display: none;
+    }
+  }
+</style>

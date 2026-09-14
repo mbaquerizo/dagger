@@ -3,8 +3,10 @@ name: ci-api
 on:
   push:
     branches: [main]
+    paths: ['api/**', '.github/workflows/ci-api.yml']
   pull_request:
     branches: [main]
+    paths: ['api/**', '.github/workflows/ci-api.yml']
 
 defaults:
   run:

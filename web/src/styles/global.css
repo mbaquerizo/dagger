@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-silver-50: #f8fafc;
+  --color-silver-100: #f1f5f9;
+  --color-silver-200: #e2e8f0;
+  --color-silver-300: #cbd5e1;
+  --color-silver-400: #94a3b8;
+  --color-silver-500: #64748b;
+  --color-silver-600: #475569;
+
+  --font-sans: ui-sans-system, system-ui, -apple-system, "Segoe UI", Inter, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #fbfcfe;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}

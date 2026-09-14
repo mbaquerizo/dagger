@@ -1,0 +1,54 @@
+---
+// Collapsible demo transcript. Collapsed by default, zero JS.
+interface Props {
+  summary: string;
+  plain?: boolean;
+}
+const { summary, plain = false } = Astro.props;
+---
+<details data-demo data-plain={plain ? '' : undefined} class="font-mono text-sm">
+  <summary>{summary}</summary>
+  <div data-demo-body>
+    <slot />
+  </div>
+</details>
+
+<style>
+  [data-demo] {
+    margin-top: 0.75rem;
+    border-top: 1px dashed #e2e8f0;
+    padding-top: 0.6rem;
+  }
+
+  [data-demo][data-plain] {
+    margin-top: 1.25rem;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  summary {
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  summary:hover {
+    color: #0f172a;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  [data-demo-body] {
+    margin-top: 0.6rem;
+    display: grid;
+    gap: 0.55rem;
+    font-size: 0.83rem;
+    line-height: 1.6;
+    color: #334155;
+  }
+</style>
