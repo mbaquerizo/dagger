@@ -15,10 +15,21 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light dark;
 }
 
 body {
   background: #fbfcfe;
   color: #0f172a;
   -webkit-font-smoothing: antialiased;
+}
+
+/* System dark mode — warm charcoal like Zen Boost auto-dark:
+   lifted near-black base, warm gray ink. Class-based `dark:` variants
+   below handle components; this covers the page canvas + native chrome. */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0F1012;
+    color: #A8B4C9;
+  }
 }

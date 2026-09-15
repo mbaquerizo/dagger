@@ -51,4 +51,23 @@ const { summary, plain = false } = Astro.props;
     line-height: 1.6;
     color: #334155;
   }
+
+  /* Dark overrides sit after base rules so they win at equal specificity. */
+  @media (prefers-color-scheme: dark) {
+    [data-demo] {
+      border-top-color: #232B38;
+    }
+
+    summary {
+      color: #7C8AA0;
+    }
+
+    summary:hover {
+      color: #D5DDF0;
+    }
+
+    [data-demo-body] {
+      color: #A8B4C9;
+    }
+  }
 </style>

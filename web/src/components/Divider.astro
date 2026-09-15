@@ -17,6 +17,30 @@
     );
   }
 
+  @media (prefers-color-scheme: dark) {
+    [data-divider] {
+      background: linear-gradient(
+        90deg,
+        transparent,
+        #33415A 12%,
+        #1A1F28 50%,
+        #33415A 88%,
+        transparent
+      );
+    }
+
+    [data-divider]::after {
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(147, 163, 186, 0.55) 38%,
+        rgba(213, 221, 240, 0.9) 50%,
+        rgba(147, 163, 186, 0.55) 62%,
+        transparent 100%
+      );
+    }
+  }
+
   [data-divider]::after {
     content: '';
     position: absolute;

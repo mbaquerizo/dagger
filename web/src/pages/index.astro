@@ -40,11 +40,14 @@ const KEY_REQUEST_HREF = `${CONTACT}?subject=${encodeURIComponent(KEY_SUBJECT)}&
       name="description"
       content="Dagger is the DAG-powered product management interface for AI agents. Tickets and docs served as raw Markdown over a fast API + MCP."
     />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fbfcfe" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F1012" media="(prefers-color-scheme: dark)" />
   </head>
-  <body class="font-sans">
+  <body class="font-sans bg-[#fbfcfe] text-slate-900 dark:bg-[#0F1012] dark:text-[#A8B4C9]">
     <!-- Alpha banner -->
-    <div class="border-b border-silver-200 bg-silver-100">
-      <p class="mx-auto max-w-4xl px-6 py-2 text-center font-mono text-xs tracking-wide text-silver-600">
+    <div class="border-b border-silver-200 bg-silver-100 dark:border-[#232B38] dark:bg-[#14181C]">
+      <p class="mx-auto max-w-4xl px-6 py-2 text-center font-mono text-xs tracking-wide text-silver-600 dark:text-[#7C8AA0]">
         ALPHA. The API is live, signup is not. Email us and we will mint your key.
       </p>
     </div>
@@ -54,22 +57,22 @@ const KEY_REQUEST_HREF = `${CONTACT}?subject=${encodeURIComponent(KEY_SUBJECT)}&
     <main class="mx-auto max-w-4xl px-6">
       <!-- About -->
       <section id="about" class="py-14">
-        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500">What it is</h2>
-        <p class="mt-3 text-xl leading-relaxed text-slate-800">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">What it is</h2>
+        <p class="mt-3 text-xl leading-relaxed text-slate-800 dark:text-[#BCC7DC]">
           Dagger keeps every decision where your agent can find it. Today it is an API.
           The chat, docs, and ticket UI for your visionaries, architects, and testers
           is coming, so the whole team can follow along.
         </p>
         <div class="mt-6 grid gap-4 sm:grid-cols-2">
-          <div class="rounded-lg border border-silver-200 bg-white p-5">
-            <h3 class="text-sm font-semibold text-slate-900">For agents</h3>
-            <p class="mt-1 text-sm leading-relaxed text-slate-600">
+          <div class="rounded-lg border border-silver-200 bg-white p-5 dark:border-[#232B38] dark:bg-[#0F0F0F]">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">For agents</h3>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
               Tickets and docs as raw Markdown over HTTPS and MCP. One auth header, millisecond reads.
             </p>
           </div>
-          <div class="rounded-lg border border-silver-200 bg-white p-5">
-            <h3 class="text-sm font-semibold text-slate-900">For humans (coming soon)</h3>
-            <p class="mt-1 text-sm leading-relaxed text-slate-600">
+          <div class="rounded-lg border border-silver-200 bg-white p-5 dark:border-[#232B38] dark:bg-[#0F0F0F]">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">For humans (coming soon)</h3>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
               A familiar chat with organized docs and focused tickets for your visionaries, architects, and testers.
               The full DAG lifecycle, preserved from idea to ticket.
             </p>
@@ -81,15 +84,15 @@ const KEY_REQUEST_HREF = `${CONTACT}?subject=${encodeURIComponent(KEY_SUBJECT)}&
 
       <!-- DAG workflow -->
       <section id="workflow" class="py-14">
-        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500">The DAG workflow</h2>
-        <p class="mt-3 text-lg text-slate-800">
-          The <a class="underline decoration-silver-300 underline-offset-4 hover:decoration-silver-500" href={DAG_REPO}>DAG plugin</a> ships a small set of skills. Two do the heavy lifting:
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">The DAG workflow</h2>
+        <p class="mt-3 text-lg text-slate-800 dark:text-[#BCC7DC]">
+          The <a class="underline decoration-silver-300 underline-offset-4 hover:decoration-silver-500 dark:decoration-[#33415A] dark:hover:decoration-[#7C8AA0]" href={DAG_REPO}>DAG plugin</a> ships a small set of skills. Two do the heavy lifting:
         </p>
         <ol class="mt-6 space-y-3 font-mono text-sm">
-          <li class="rounded-lg border border-silver-200 bg-white p-4">
+          <li class="rounded-lg border border-silver-200 bg-white p-4 dark:border-[#232B38] dark:bg-[#0F0F0F]">
             <div class="flex gap-3">
-              <span class="text-silver-400">→</span>
-              <span><strong class="font-semibold">plan-feature</strong> <span class="text-slate-500">turns an idea or transcript into a planning doc.</span></span>
+              <span class="text-silver-400 dark:text-[#475569]">→</span>
+              <span><strong class="font-semibold">plan-feature</strong> <span class="text-slate-500 dark:text-[#A8B4C9]">turns an idea or transcript into a planning doc.</span></span>
             </div>
             <DemoDetails summary="See it plan">
               <DemoCaption>Illustrative example.</DemoCaption>
@@ -99,10 +102,10 @@ const KEY_REQUEST_HREF = `${CONTACT}?subject=${encodeURIComponent(KEY_SUBJECT)}&
               <DemoLine from="dagger">planning doc drafted: workspace model, fixed roles, default-workspace migration, billing hooks left open. published as DGR-31.</DemoLine>
             </DemoDetails>
           </li>
-          <li class="rounded-lg border border-silver-200 bg-white p-4">
+          <li class="rounded-lg border border-silver-200 bg-white p-4 dark:border-[#232B38] dark:bg-[#0F0F0F]">
             <div class="flex gap-3">
-              <span class="text-silver-400">→</span>
-              <span><strong class="font-semibold">create-tickets</strong> <span class="text-slate-500">turns the ADR into PR-sized tickets your agent can build.</span></span>
+              <span class="text-silver-400 dark:text-[#475569]">→</span>
+              <span><strong class="font-semibold">create-tickets</strong> <span class="text-slate-500 dark:text-[#A8B4C9]">turns the ADR into PR-sized tickets your agent can build.</span></span>
             </div>
             <DemoDetails summary="See it break down">
               <DemoCaption>Illustrative example.</DemoCaption>
@@ -111,10 +114,10 @@ const KEY_REQUEST_HREF = `${CONTACT}?subject=${encodeURIComponent(KEY_SUBJECT)}&
             </DemoDetails>
           </li>
         </ol>
-        <p class="mt-5 leading-relaxed text-slate-600">
-          Underneath, <span class="font-mono text-sm text-slate-800">dag-publish</span> files
+        <p class="mt-5 leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
+          Underneath, <span class="font-mono text-sm text-slate-800 dark:text-[#BCC7DC]">dag-publish</span> files
           everything where agents can read it. It is the internal step the other two call on,
-          not something you invoke by hand. A <span class="font-mono text-sm text-slate-800">start-work</span> utility
+          not something you invoke by hand. A <span class="font-mono text-sm text-slate-800 dark:text-[#BCC7DC]">start-work</span> utility
           rounds out the set: it shows your agent how to pull a ticket and get going.
         </p>
         <DemoDetails summary="See what the agent receives" plain>
@@ -162,35 +165,35 @@ server-side from the key. Billing hooks left open.
 
       <!-- Use it now -->
       <section id="start" class="py-14">
-        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500">Use it now</h2>
-        <p class="mt-3 text-lg text-slate-800">Three steps. All copy and paste, free while in alpha.</p>
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">Use it now</h2>
+        <p class="mt-3 text-lg text-slate-800 dark:text-[#BCC7DC]">Three steps. All copy and paste, free while in alpha.</p>
         <div class="mt-6 space-y-5">
           <div>
-            <h3 class="font-mono text-sm font-semibold text-slate-900">1. Request a key</h3>
-            <p class="mt-1 text-sm text-slate-600">
+            <h3 class="font-mono text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">1. Request a key</h3>
+            <p class="mt-1 text-sm text-slate-600 dark:text-[#A8B4C9]">
               <a class="underline underline-offset-4" href={KEY_REQUEST_HREF}>Request a key</a> and
               fill in the template. Each key is minted by hand, so allow a little time.
             </p>
           </div>
           <div>
-            <h3 class="font-mono text-sm font-semibold text-slate-900">2. Add the plugin</h3>
-            <p class="mt-1 text-sm text-slate-600">
+            <h3 class="font-mono text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">2. Add the plugin</h3>
+            <p class="mt-1 text-sm text-slate-600 dark:text-[#A8B4C9]">
               The skills ship as a plugin from the <a class="underline underline-offset-4" href={DAG_REPO}>DAG repository</a>.
             </p>
-            <p class="mt-3 text-sm text-slate-600">Claude Code, from any prompt:</p>
+            <p class="mt-3 text-sm text-slate-600 dark:text-[#A8B4C9]">Claude Code, from any prompt:</p>
             <CodeBlock>{`/plugin marketplace add mbaquerizo/docs-augmented-generation
 /plugin install dag@docs-augmented-generation`}</CodeBlock>
-            <p class="mt-3 text-sm text-slate-600">OpenCode:</p>
+            <p class="mt-3 text-sm text-slate-600 dark:text-[#A8B4C9]">OpenCode:</p>
             <CodeBlock>{`git clone ${DAG_REPO}
 cd docs-augmented-generation
 npx skills add ./plugins`}</CodeBlock>
-            <p class="mt-2 text-sm text-slate-500">
+            <p class="mt-2 text-sm text-slate-500 dark:text-[#7C8AA0]">
               Full instructions live in the repo. Anything else that speaks MCP can skip
               straight to step 3.
             </p>
           </div>
           <div>
-            <h3 class="font-mono text-sm font-semibold text-slate-900">3. Connect MCP</h3>
+            <h3 class="font-mono text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">3. Connect MCP</h3>
             <CodeBlock>{`{
   "mcpServers": {
     "dagger": {
@@ -207,19 +210,19 @@ npx skills add ./plugins`}</CodeBlock>
 
       <!-- Agent reference -->
       <section id="api" class="py-14">
-        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500">Agent reference</h2>
-        <p class="mt-3 text-lg text-slate-800">
-          The MCP endpoint lives at <code class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm">POST {API_BASE}/api/v1/agent/mcp</code>.
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">Agent reference</h2>
+        <p class="mt-3 text-lg text-slate-800 dark:text-[#BCC7DC]">
+          The MCP endpoint lives at <code class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm dark:bg-[#20262F] dark:text-[#D5DDF0]">POST {API_BASE}/api/v1/agent/mcp</code>.
           It ships with a focused set of tools, with more on the way.
-          Authentication is a single header: <code class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm">Authorization: Bearer $DAGGER_API_KEY</code>.
+          Authentication is a single header: <code class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm dark:bg-[#20262F] dark:text-[#D5DDF0]">Authorization: Bearer $DAGGER_API_KEY</code>.
         </p>
 
-        <div class="mt-6 overflow-x-auto rounded-lg border border-silver-200">
-          <table class="w-full bg-white text-left font-mono text-sm">
-            <thead class="bg-silver-100 text-xs uppercase tracking-wider text-silver-600">
+        <div class="mt-6 overflow-x-auto rounded-lg border border-silver-200 dark:border-[#232B38]">
+          <table class="w-full bg-white text-left font-mono text-sm dark:bg-[#0F0F0F]">
+            <thead class="bg-silver-100 text-xs uppercase tracking-wider text-silver-600 dark:bg-[#1C1F26] dark:text-[#7C8AA0]">
               <tr><th class="px-4 py-2">Tool</th><th class="px-4 py-2">Does</th></tr>
             </thead>
-            <tbody class="divide-y divide-silver-100 text-slate-700">
+            <tbody class="divide-y divide-silver-100 text-slate-700 dark:divide-[#1D232C] dark:text-[#A8B4C9]">
               <tr><td class="px-4 py-2 font-semibold">get_issue</td><td class="px-4 py-2">Full ticket plus linked docs as Markdown</td></tr>
               <tr><td class="px-4 py-2 font-semibold">get_doc</td><td class="px-4 py-2">Full document as Markdown</td></tr>
               <tr><td class="px-4 py-2 font-semibold">list_issues</td><td class="px-4 py-2">Filter tickets by status</td></tr>
@@ -243,26 +246,26 @@ curl -X PATCH -H "Authorization: Bearer $DAGGER_API_KEY" \\
   -d '{"status":"in-progress"}' \\
   ${API_BASE}/api/v1/issues/DGR-42/status`}</CodeBlock>
         </div>
-        <p class="mt-4 text-sm text-slate-500">The repository docs carry the full contract. This is the short version.</p>
+        <p class="mt-4 text-sm text-slate-500 dark:text-[#7C8AA0]">The repository docs carry the full contract. This is the short version.</p>
       </section>
 
       <Divider />
 
       <!-- What's coming -->
       <section id="coming" class="py-14">
-        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500">What's coming</h2>
-        <ul class="mt-4 space-y-2 text-slate-700">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">What's coming</h2>
+        <ul class="mt-4 space-y-2 text-slate-700 dark:text-[#A8B4C9]">
           <li><strong class="font-semibold">App.</strong> A human interface for chat, docs, and tickets, living at <span class="font-mono text-sm">app.</span> subdomains.</li>
           <li><strong class="font-semibold">Login.</strong> Make your own keys instead of emailing us.</li>
           <li><strong class="font-semibold">Workspaces.</strong> A home for each team under one roof.</li>
         </ul>
-        <p class="mt-3 font-mono text-sm text-silver-500">Free in alpha.</p>
+        <p class="mt-3 font-mono text-sm text-silver-500 dark:text-[#7C8AA0]">Free in alpha.</p>
       </section>
     </main>
 
     <Divider />
 
-    <footer class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-8 font-mono text-sm text-slate-500">
+    <footer class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-8 font-mono text-sm text-slate-500 dark:text-[#7C8AA0]">
       <span>Dagger 🗡 — sharp docs for agents.</span>
       <span class="flex gap-5">
         <a class="underline-offset-4 hover:underline" href={GITHUB}>GitHub</a>
@@ -352,19 +355,6 @@ curl -X PATCH -H "Authorization: Bearer $DAGGER_API_KEY" \\
             glintHeadline();
           }
         }, 9000);
-        // Faint pointer glow across the hero. Subtle by design.
-        if (hero) {
-          const el = hero;
-          el.addEventListener('pointermove', (e) => {
-            const r = el.getBoundingClientRect();
-            const x = ((e.clientX - r.left) / r.width) * 100;
-            const y = ((e.clientY - r.top) / r.height) * 100;
-            el.style.setProperty('--hx', `${Math.max(0, Math.min(100, x)).toFixed(1)}%`);
-            el.style.setProperty('--hy', `${Math.max(0, Math.min(100, y)).toFixed(1)}%`);
-            el.toggleAttribute('data-glow', true);
-          }, { passive: true });
-          el.addEventListener('pointerleave', () => el.removeAttribute('data-glow'));
-        }
       }
     </script>
   </body>
