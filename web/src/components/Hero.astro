@@ -1,0 +1,116 @@
+---
+import Divider from './Divider.astro';
+
+// Page hero. Flat field (no glow), headline glint,
+// and primary CTA glint. Glint vars set from the page script.
+interface Props {
+  keyHref: string;
+  githubHref: string;
+}
+const { keyHref, githubHref } = Astro.props;
+---
+<header id="top" data-hero>
+  <div class="mx-auto w-full max-w-4xl px-6 py-24">
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">Dagger 🗡 — alpha</p>
+    <h1 data-headline class="mt-4 pb-[0.15em] -mb-[0.15em] text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+      Docs Augmented Generation,<br />served sharp to your agent.
+    </h1>
+    <p class="mt-5 max-w-2xl text-lg leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
+      Dagger is where your product documents live, and where your agent reads them from.
+      A blazing-fast text interface for agents, with everything they need and nothing they don't.
+      Tell your agent
+      <span class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm text-slate-800 dark:bg-[#20262F] dark:text-[#D5DDF0]">Work on DGR-42</span>
+      and it starts with full context: idea, decisions, acceptance criteria.
+    </p>
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href={keyHref}
+        data-cta
+        class="rounded-md bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-slate-700 dark:bg-[#D5DDF0] dark:text-[#0F1012] dark:hover:bg-[#CBD3E6]"
+      >Request an API key</a>
+      <a
+        href={githubHref}
+        class="rounded-md border border-silver-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-800 transition hover:border-silver-400 hover:bg-silver-50 dark:border-[#2F3A4D] dark:bg-transparent dark:text-[#D5DDF0] dark:hover:border-[#7C8AA0] dark:hover:bg-white/5"
+      >GitHub</a>
+    </div>
+  </div>
+  <Divider />
+</header>
+
+<style>
+  /* Headline glint. At rest the gradient sits on base color: plain ink. */
+  [data-headline] {
+    background-image: linear-gradient(
+      110deg,
+      #0f172a 20%,
+      #0f172a 40%,
+      #b6c2d2 47%,
+      #ffffff 50%,
+      #b6c2d2 53%,
+      #0f172a 60%,
+      #0f172a 80%
+    );
+    background-size: 300% 100%;
+    background-position: var(--tp, 0%) 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* CTA glint on hover only. Rest never moves. */
+  [data-cta] {
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-cta]::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      110deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.35) 50%,
+      transparent 70%
+    );
+    transform: translateX(-130%);
+    transition: transform 0.55s ease;
+    pointer-events: none;
+  }
+
+  [data-cta]:hover::after {
+    transform: translateX(130%);
+  }
+
+  /* Dark mode: hero stays flat (page bg), headline glints light.
+     Overrides sit after base rules so they win at equal specificity. */
+  @media (prefers-color-scheme: dark) {
+    [data-headline] {
+      background-image: linear-gradient(
+        110deg,
+        #D5DDF0 20%,
+        #D5DDF0 40%,
+        #6B7A94 47%,
+        #ffffff 50%,
+        #6B7A94 53%,
+        #D5DDF0 60%,
+        #D5DDF0 80%
+      );
+    }
+
+    [data-cta]::after {
+      background: linear-gradient(
+        110deg,
+        transparent 30%,
+        rgba(0, 0, 0, 0.18) 50%,
+        transparent 70%
+      );
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-cta]::after {
+      display: none;
+    }
+  }
+</style>

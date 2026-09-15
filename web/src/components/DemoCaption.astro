@@ -1,0 +1,17 @@
+---
+// Small honesty label inside a demo transcript.
+---
+<p data-caption><slot /></p>
+
+<style>
+  [data-caption] {
+    font-size: 0.72rem;
+    color: #94a3b8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    [data-caption] {
+      color: #7C8AA0;
+    }
+  }
+</style>

@@ -1,0 +1,361 @@
+---
+import '../styles/global.css';
+import Hero from '../components/Hero.astro';
+import Divider from '../components/Divider.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import DemoDetails from '../components/DemoDetails.astro';
+import DemoLine from '../components/DemoLine.astro';
+import DemoCaption from '../components/DemoCaption.astro';
+
+const API_BASE = 'https://api.dagger-ai.com';
+const CONTACT = 'mailto:admin@dagger-ai.com';
+const GITHUB = 'https://github.com/mbaquerizo/dagger';
+const DAG_REPO = 'https://github.com/mbaquerizo/docs-augmented-generation';
+
+// Key request opens the mail client with a prefilled template. No backend,
+// no dependencies, just a mailto link with subject + body.
+const KEY_SUBJECT = 'Dagger API key request';
+const KEY_BODY = [
+  'Hi Dagger team,',
+  '',
+  'Please mint me an API key.',
+  '',
+  'Email:',
+  'Project name:',
+  'Desired workspace name (your company or org):',
+  'Project slug (ticket and doc prefix, e.g. DGR):',
+  '',
+  'Thanks!',
+].join('\n');
+const KEY_REQUEST_HREF = `${CONTACT}?subject=${encodeURIComponent(KEY_SUBJECT)}&body=${encodeURIComponent(KEY_BODY)}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dagger — Docs Augmented Generation, served to agents</title>
+    <meta
+      name="description"
+      content="Dagger is the DAG-powered product management interface for AI agents. Tickets and docs served as raw Markdown over a fast API + MCP."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#fbfcfe" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F1012" media="(prefers-color-scheme: dark)" />
+  </head>
+  <body class="font-sans bg-[#fbfcfe] text-slate-900 dark:bg-[#0F1012] dark:text-[#A8B4C9]">
+    <!-- Alpha banner -->
+    <div class="border-b border-silver-200 bg-silver-100 dark:border-[#232B38] dark:bg-[#14181C]">
+      <p class="mx-auto max-w-4xl px-6 py-2 text-center font-mono text-xs tracking-wide text-silver-600 dark:text-[#7C8AA0]">
+        ALPHA. The API is live, signup is not. Email us and we will mint your key.
+      </p>
+    </div>
+
+    <Hero keyHref={KEY_REQUEST_HREF} githubHref={GITHUB} />
+
+    <main class="mx-auto max-w-4xl px-6">
+      <!-- About -->
+      <section id="about" class="py-14">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">What it is</h2>
+        <p class="mt-3 text-xl leading-relaxed text-slate-800 dark:text-[#BCC7DC]">
+          Dagger keeps every decision where your agent can find it. Today it is an API.
+          The chat, docs, and ticket UI for your visionaries, architects, and testers
+          is coming, so the whole team can follow along.
+        </p>
+        <div class="mt-6 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-lg border border-silver-200 bg-white p-5 dark:border-[#232B38] dark:bg-[#0F0F0F]">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">For agents</h3>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
+              Tickets and docs as raw Markdown over HTTPS and MCP. One auth header, millisecond reads.
+            </p>
+          </div>
+          <div class="rounded-lg border border-silver-200 bg-white p-5 dark:border-[#232B38] dark:bg-[#0F0F0F]">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">For humans (coming soon)</h3>
+            <p class="mt-1 text-sm leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
+              A familiar chat with organized docs and focused tickets for your visionaries, architects, and testers.
+              The full DAG lifecycle, preserved from idea to ticket.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      <!-- DAG workflow -->
+      <section id="workflow" class="py-14">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">The DAG workflow</h2>
+        <p class="mt-3 text-lg text-slate-800 dark:text-[#BCC7DC]">
+          The <a class="underline decoration-silver-300 underline-offset-4 hover:decoration-silver-500 dark:decoration-[#33415A] dark:hover:decoration-[#7C8AA0]" href={DAG_REPO}>DAG plugin</a> ships a small set of skills. Two do the heavy lifting:
+        </p>
+        <ol class="mt-6 space-y-3 font-mono text-sm">
+          <li class="rounded-lg border border-silver-200 bg-white p-4 dark:border-[#232B38] dark:bg-[#0F0F0F]">
+            <div class="flex gap-3">
+              <span class="text-silver-400 dark:text-[#475569]">→</span>
+              <span><strong class="font-semibold">plan-feature</strong> <span class="text-slate-500 dark:text-[#A8B4C9]">turns an idea or transcript into a planning doc.</span></span>
+            </div>
+            <DemoDetails summary="See it plan">
+              <DemoCaption>Illustrative example.</DemoCaption>
+              <DemoLine from="you">we need team workspaces. each company gets one, with members, roles, and fully isolated tickets. stack is supabase postgres and chi. api keys are per-project today.</DemoLine>
+              <DemoLine from="dagger">got it. three questions before i write the planning doc: fixed roles or custom? does existing project data migrate into a workspace, or start clean? per-seat billing now or later?</DemoLine>
+              <DemoLine from="you">fixed roles. migrate everything into a default workspace. billing later, but don't block it.</DemoLine>
+              <DemoLine from="dagger">planning doc drafted: workspace model, fixed roles, default-workspace migration, billing hooks left open. published as DGR-31.</DemoLine>
+            </DemoDetails>
+          </li>
+          <li class="rounded-lg border border-silver-200 bg-white p-4 dark:border-[#232B38] dark:bg-[#0F0F0F]">
+            <div class="flex gap-3">
+              <span class="text-silver-400 dark:text-[#475569]">→</span>
+              <span><strong class="font-semibold">create-tickets</strong> <span class="text-slate-500 dark:text-[#A8B4C9]">turns the ADR into PR-sized tickets your agent can build.</span></span>
+            </div>
+            <DemoDetails summary="See it break down">
+              <DemoCaption>Illustrative example.</DemoCaption>
+              <DemoLine from="you">break DGR-31 into tickets.</DemoLine>
+              <DemoLine from="dagger">four tickets, each PR-sized: DGR-32, workspace schema plus row-level isolation. DGR-33, invites plus fixed roles. DGR-34, scope api keys per workspace. DGR-35, migrate existing projects into a default workspace. each carries the adr decisions it depends on.</DemoLine>
+            </DemoDetails>
+          </li>
+        </ol>
+        <p class="mt-5 leading-relaxed text-slate-600 dark:text-[#A8B4C9]">
+          Underneath, <span class="font-mono text-sm text-slate-800 dark:text-[#BCC7DC]">dag-publish</span> files
+          everything where agents can read it. It is the internal step the other two call on,
+          not something you invoke by hand. A <span class="font-mono text-sm text-slate-800 dark:text-[#BCC7DC]">start-work</span> utility
+          rounds out the set: it shows your agent how to pull a ticket and get going.
+        </p>
+        <DemoDetails summary="See what the agent receives" plain>
+          <DemoCaption>Mocked payload in the exact shape of GET /api/v1/agent/issues/{'{displayId}'} — one pull, full context.</DemoCaption>
+          <DemoLine from="you">work on DGR-34.</DemoLine>
+          <CodeBlock compact capped>{`---
+id: 34
+display_id: DGR-34
+status: open
+type: story
+parent_id: 5
+parent_display_id: DGR-31
+---
+
+# DGR-34: Scope API keys per workspace
+
+**Status:** open  |  **Type:** story
+**Parent:** DGR-31 (Team workspaces)
+
+Keys authenticate against the workspace, never the project.
+Middleware resolves workspace_id from the key and every query
+is scoped to it. Existing project keys keep working: they map
+to the default workspace created by the DGR-35 migration.
+
+Acceptance criteria include rotating a key without downtime
+and rejecting a key from workspace A against workspace B.
+
+---
+
+## Linked Context
+
+### DGR-30: Workspace auth model
+**Status:** approved
+Fixed roles (admin, member). Keys carry workspace_id.
+Never trust a project_id from the client; derive it
+server-side from the key. Billing hooks left open.
+
+## Related Issues
+
+- **blocked by** DGR-32: Workspace schema plus row-level isolation`}</CodeBlock>
+        </DemoDetails>
+      </section>
+
+      <Divider />
+
+      <!-- Use it now -->
+      <section id="start" class="py-14">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">Use it now</h2>
+        <p class="mt-3 text-lg text-slate-800 dark:text-[#BCC7DC]">Three steps. All copy and paste, free while in alpha.</p>
+        <div class="mt-6 space-y-5">
+          <div>
+            <h3 class="font-mono text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">1. Request a key</h3>
+            <p class="mt-1 text-sm text-slate-600 dark:text-[#A8B4C9]">
+              <a class="underline underline-offset-4" href={KEY_REQUEST_HREF}>Request a key</a> and
+              fill in the template. Each key is minted by hand, so allow a little time.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-mono text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">2. Add the plugin</h3>
+            <p class="mt-1 text-sm text-slate-600 dark:text-[#A8B4C9]">
+              The skills ship as a plugin from the <a class="underline underline-offset-4" href={DAG_REPO}>DAG repository</a>.
+            </p>
+            <p class="mt-3 text-sm text-slate-600 dark:text-[#A8B4C9]">Claude Code, from any prompt:</p>
+            <CodeBlock>{`/plugin marketplace add mbaquerizo/docs-augmented-generation
+/plugin install dag@docs-augmented-generation`}</CodeBlock>
+            <p class="mt-3 text-sm text-slate-600 dark:text-[#A8B4C9]">OpenCode:</p>
+            <CodeBlock>{`git clone ${DAG_REPO}
+cd docs-augmented-generation
+npx skills add ./plugins`}</CodeBlock>
+            <p class="mt-2 text-sm text-slate-500 dark:text-[#7C8AA0]">
+              Full instructions live in the repo. Anything else that speaks MCP can skip
+              straight to step 3.
+            </p>
+          </div>
+          <div>
+            <h3 class="font-mono text-sm font-semibold text-slate-900 dark:text-[#D5DDF0]">3. Connect MCP</h3>
+            <CodeBlock>{`{
+  "mcpServers": {
+    "dagger": {
+      "url": "${API_BASE}/api/v1/agent/mcp",
+      "headers": { "Authorization": "Bearer $DAGGER_API_KEY" }
+    }
+  }
+}`}</CodeBlock>
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      <!-- Agent reference -->
+      <section id="api" class="py-14">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">Agent reference</h2>
+        <p class="mt-3 text-lg text-slate-800 dark:text-[#BCC7DC]">
+          The MCP endpoint lives at <code class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm dark:bg-[#20262F] dark:text-[#D5DDF0]">POST {API_BASE}/api/v1/agent/mcp</code>.
+          It ships with a focused set of tools, with more on the way.
+          Authentication is a single header: <code class="rounded bg-silver-100 px-1.5 py-0.5 font-mono text-sm dark:bg-[#20262F] dark:text-[#D5DDF0]">Authorization: Bearer $DAGGER_API_KEY</code>.
+        </p>
+
+        <div class="mt-6 overflow-x-auto rounded-lg border border-silver-200 dark:border-[#232B38]">
+          <table class="w-full bg-white text-left font-mono text-sm dark:bg-[#0F0F0F]">
+            <thead class="bg-silver-100 text-xs uppercase tracking-wider text-silver-600 dark:bg-[#1C1F26] dark:text-[#7C8AA0]">
+              <tr><th class="px-4 py-2">Tool</th><th class="px-4 py-2">Does</th></tr>
+            </thead>
+            <tbody class="divide-y divide-silver-100 text-slate-700 dark:divide-[#1D232C] dark:text-[#A8B4C9]">
+              <tr><td class="px-4 py-2 font-semibold">get_issue</td><td class="px-4 py-2">Full ticket plus linked docs as Markdown</td></tr>
+              <tr><td class="px-4 py-2 font-semibold">get_doc</td><td class="px-4 py-2">Full document as Markdown</td></tr>
+              <tr><td class="px-4 py-2 font-semibold">list_issues</td><td class="px-4 py-2">Filter tickets by status</td></tr>
+              <tr><td class="px-4 py-2 font-semibold">update_issue_status</td><td class="px-4 py-2">Move a ticket along its lifecycle</td></tr>
+              <tr><td class="px-4 py-2 font-semibold">add_issue_relation</td><td class="px-4 py-2">Link tickets (blocks, relates to…)</td></tr>
+              <tr><td class="px-4 py-2 font-semibold">publish</td><td class="px-4 py-2">Publish a doc or ticket</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-6 space-y-4">
+          <CodeBlock>{`# Read a ticket with full context
+curl -H "Authorization: Bearer $DAGGER_API_KEY" \\
+  ${API_BASE}/api/v1/agent/issues/DGR-42`}</CodeBlock>
+          <CodeBlock>{`# List open tickets
+curl -H "Authorization: Bearer $DAGGER_API_KEY" \\
+  "${API_BASE}/api/v1/issues?status=open"`}</CodeBlock>
+          <CodeBlock>{`# Advance a ticket
+curl -X PATCH -H "Authorization: Bearer $DAGGER_API_KEY" \\
+  -H 'Content-Type: application/json' \\
+  -d '{"status":"in-progress"}' \\
+  ${API_BASE}/api/v1/issues/DGR-42/status`}</CodeBlock>
+        </div>
+        <p class="mt-4 text-sm text-slate-500 dark:text-[#7C8AA0]">The repository docs carry the full contract. This is the short version.</p>
+      </section>
+
+      <Divider />
+
+      <!-- What's coming -->
+      <section id="coming" class="py-14">
+        <h2 class="font-mono text-xs uppercase tracking-[0.2em] text-silver-500 dark:text-[#7C8AA0]">What's coming</h2>
+        <ul class="mt-4 space-y-2 text-slate-700 dark:text-[#A8B4C9]">
+          <li><strong class="font-semibold">App.</strong> A human interface for chat, docs, and tickets, living at <span class="font-mono text-sm">app.</span> subdomains.</li>
+          <li><strong class="font-semibold">Login.</strong> Make your own keys instead of emailing us.</li>
+          <li><strong class="font-semibold">Workspaces.</strong> A home for each team under one roof.</li>
+        </ul>
+        <p class="mt-3 font-mono text-sm text-silver-500 dark:text-[#7C8AA0]">Free in alpha.</p>
+      </section>
+    </main>
+
+    <Divider />
+
+    <footer class="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-6 py-8 font-mono text-sm text-slate-500 dark:text-[#7C8AA0]">
+      <span>Dagger 🗡 — sharp docs for agents.</span>
+      <span class="flex gap-5">
+        <a class="underline-offset-4 hover:underline" href={GITHUB}>GitHub</a>
+        <a class="underline-offset-4 hover:underline" href={CONTACT}>Contact</a>
+      </span>
+    </footer>
+
+    <!-- Glints: the headline catches light on load and when the hero
+         scrolls back into view; each divider glints as it enters the
+         viewport, with a small random delay so they feel scattered.
+         A slow timer adds the occasional unprompted glint. Honors
+         prefers-reduced-motion. Inline, no framework. -->
+    <script is:inline>
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const hero = document.querySelector('[data-hero]');
+        const headline = document.querySelector('[data-headline]');
+        const easeInOut = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        // Headline glint: fast cross, ~450ms.
+        const glintHeadline = () => {
+          if (!headline) return;
+          const t0 = performance.now();
+          const frame = (now) => {
+            const p = Math.min(1, (now - t0) / 450);
+            headline.style.setProperty('--tp', `${(easeInOut(p) * 100).toFixed(1)}%`);
+            if (p < 1) requestAnimationFrame(frame);
+          };
+          requestAnimationFrame(frame);
+        };
+        window.setTimeout(glintHeadline, 500);
+        if (hero && 'IntersectionObserver' in window) {
+          let cooling = false;
+          const shine = new IntersectionObserver(
+            (entries) => {
+              if (cooling || window.scrollY < 100) return;
+              if (entries.some((e) => e.isIntersecting)) {
+                cooling = true;
+                glintHeadline();
+                window.setTimeout(() => { cooling = false; }, 4000);
+              }
+            },
+            { threshold: 0.6 }
+          );
+          shine.observe(hero);
+        }
+        // Divider glints: one quick pass each time a divider enters view.
+        const rules = document.querySelectorAll('[data-divider]');
+        const inView = (el) => {
+          const r = el.getBoundingClientRect();
+          return r.top < window.innerHeight * 0.9 && r.bottom > window.innerHeight * 0.1;
+        };
+        const firing = new WeakSet();
+        const glintRule = (el, delay = Math.random() * 450) => {
+          if (firing.has(el)) return;
+          firing.add(el);
+          window.setTimeout(() => {
+            const t0 = performance.now();
+            const frame = (now) => {
+              const p = Math.min(1, (now - t0) / 650);
+              const e = easeInOut(p);
+              el.style.setProperty('--dp', `${(-50 + 200 * e).toFixed(1)}%`);
+              el.style.setProperty('--do', (p < 0.15 ? p / 0.15 : 1 - Math.max(0, (p - 0.6) / 0.4)).toFixed(3));
+              if (p < 1) requestAnimationFrame(frame);
+              else firing.delete(el);
+            };
+            requestAnimationFrame(frame);
+          }, delay);
+        };
+        if (rules.length && 'IntersectionObserver' in window) {
+          const watch = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) glintRule(entry.target);
+              });
+            },
+            { threshold: 0.8 }
+          );
+          rules.forEach((r) => watch.observe(r));
+        }
+        // Ambient timer: every so often something catches the light on its
+        // own. Prefers a divider already on screen, else the headline.
+        window.setInterval(() => {
+          if (document.hidden) return;
+          const visible = Array.from(rules).filter(inView);
+          if (visible.length && Math.random() < 0.7) {
+            glintRule(visible[Math.floor(Math.random() * visible.length)], 0);
+          } else if (hero && inView(hero)) {
+            glintHeadline();
+          }
+        }, 9000);
+      }
+    </script>
+  </body>
+</html>

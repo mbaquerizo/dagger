@@ -1,0 +1,30 @@
+name: ci-web
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/ci-web.yml']
+  pull_request:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/ci-web.yml']
+
+defaults:
+  run:
+    working-directory: ./web
+
+jobs:
+  ci-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: install
+        run: npm ci
+      - name: check
+        run: npm run check
+      - name: build
+        run: npm run build

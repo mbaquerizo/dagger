@@ -1,0 +1,20 @@
+---
+// One transcript line. `from` picks the speaker marker.
+interface Props {
+  from: 'you' | 'dagger';
+}
+const { from } = Astro.props;
+---
+<p><span data-marker>{from === 'you' ? 'you → ' : 'dagger → '}</span><slot /></p>
+
+<style>
+  [data-marker] {
+    color: #94a3b8;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    [data-marker] {
+      color: #475569;
+    }
+  }
+</style>
