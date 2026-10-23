@@ -146,6 +146,35 @@ func (s *DBService) UpdateIssueStatus(ctx context.Context, displayID string, new
 	}, nil
 }
 
+func (s *DBService) UpdateIssue(ctx context.Context, displayID string, req issues.UpdateIssueRequest) (ToolResult, error) {
+	workspaceID, ok := auth.WorkspaceIDFromContext(ctx)
+
+	if !ok {
+		return ToolResult{}, fmt.Errorf("unauthorized")
+	}
+
+	projectID, hasProjectID := auth.ProjectIDFromContext(ctx)
+	var projectIDPtr *int
+
+	if hasProjectID {
+		projectIDPtr = &projectID
+	}
+
+	if err := issues.ValidateUpdateIssueRequest(req); err != nil {
+		return ToolResult{}, fmt.Errorf("validation failed: %w", err)
+	}
+
+	err := issues.UpdateIssue(ctx, s.pool, req, displayID, workspaceID, projectIDPtr)
+
+	if err != nil {
+		return ToolResult{}, err
+	}
+
+	return ToolResult{
+		Content: []ContentItem{{Type: "text", Text: "Updated " + displayID}},
+	}, nil
+}
+
 func (s *DBService) Publish(ctx context.Context, req publish.PublishRequest) (ToolResult, error) {
 	workspaceID, ok := auth.WorkspaceIDFromContext(ctx)
 

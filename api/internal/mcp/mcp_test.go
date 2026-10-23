@@ -80,8 +80,8 @@ func TestResponseMarshalError(t *testing.T) {
 
 func TestListTools(t *testing.T) {
 	tools := ListTools()
-	if len(tools) != 6 {
-		t.Fatalf("got %d tools, want 6", len(tools))
+	if len(tools) != 7 {
+		t.Fatalf("got %d tools, want 7", len(tools))
 	}
 	names := make(map[string]bool)
 	for _, tool := range tools {
@@ -96,7 +96,7 @@ func TestListTools(t *testing.T) {
 			t.Errorf("tool %q InputSchema.Type = %q, want object", tool.Name, tool.InputSchema.Type)
 		}
 	}
-	want := []string{"get_issue", "get_doc", "list_issues", "update_issue_status", "publish"}
+	want := []string{"get_issue", "get_doc", "list_issues", "update_issue_status", "update_issue", "publish", "add_issue_relation"}
 	for _, name := range want {
 		if !names[name] {
 			t.Errorf("missing tool: %s", name)
@@ -174,6 +174,37 @@ func TestToolParams(t *testing.T) {
 			}
 			if !contains(tool.InputSchema.Required, name) {
 				t.Errorf("%s should be required", name)
+			}
+		}
+	})
+
+	t.Run("update_issue", func(t *testing.T) {
+		tool, ok := byName["update_issue"]
+		if !ok {
+			t.Fatal("missing")
+		}
+		// display_id is required
+		p, ok := tool.InputSchema.Properties["display_id"]
+		if !ok {
+			t.Fatal("missing display_id param")
+		}
+		if p.Type != "string" {
+			t.Errorf("display_id type = %q, want string", p.Type)
+		}
+		if !contains(tool.InputSchema.Required, "display_id") {
+			t.Error("display_id should be required")
+		}
+		// title, body, status are optional
+		for _, name := range []string{"title", "body", "status"} {
+			p, ok := tool.InputSchema.Properties[name]
+			if !ok {
+				t.Fatalf("missing %s param", name)
+			}
+			if p.Type != "string" {
+				t.Errorf("%s type = %q, want string", name, p.Type)
+			}
+			if contains(tool.InputSchema.Required, name) {
+				t.Errorf("%s should be optional", name)
 			}
 		}
 	})

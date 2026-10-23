@@ -39,8 +39,8 @@ func TestServer_ToolsList(t *testing.T) {
 		t.Fatal("result.tools should be []ToolDefinition")
 	}
 
-	if len(tools) != 6 {
-		t.Fatalf("got %d tools, want 6", len(tools))
+	if len(tools) != 7 {
+		t.Fatalf("got %d tools, want 7", len(tools))
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -256,6 +256,48 @@ func TestServer_ToolsCallAddIssueRelation(t *testing.T) {
 		t.Fatalf("unexpected error: %+v", resp.Error)
 	}
 
+	result, ok := resp.Result.(ToolResult)
+	if !ok {
+		t.Fatal("result should be a ToolResult")
+	}
+	if len(result.Content) != 1 {
+		t.Fatalf("got %d content items, want 1", len(result.Content))
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestServer_ToolsCallUpdateIssue(t *testing.T) {
+	mock, err := pgxmock.NewPool(pgxmock.QueryMatcherOption(pgxmock.QueryMatcherAny))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mock.Close()
+
+	mock.ExpectQuery("SELECT project_id FROM issues").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnRows(pgxmock.NewRows([]string{"project_id"}).AddRow(1))
+
+	mock.ExpectExec("UPDATE issues").
+		WithArgs(pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg(), pgxmock.AnyArg()).
+		WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+
+	svc := NewDBService(mock, "http://localhost:8080")
+	server := NewServer(svc)
+	ctx := auth.WithWorkspaceID(context.Background(), 1)
+
+	resp := callTool(ctx, server, "update_issue", map[string]interface{}{
+		"display_id": "DGR-42",
+		"title":      "Updated Title",
+		"body":       "Updated body",
+		"status":     "in-progress",
+	})
+
+	if resp.Error != nil {
+		t.Fatalf("unexpected error: %+v", resp.Error)
+	}
 	result, ok := resp.Result.(ToolResult)
 	if !ok {
 		t.Fatal("result should be a ToolResult")
@@ -520,6 +562,8 @@ func TestServer_MissingRequiredParams(t *testing.T) {
 		{"get_doc missing display_id", "get_doc", map[string]interface{}{}},
 		{"update_issue_status missing all", "update_issue_status", map[string]interface{}{}},
 		{"update_issue_status missing status", "update_issue_status", map[string]interface{}{"display_id": "DGR-42"}},
+		{"update_issue missing display_id", "update_issue", map[string]interface{}{}},
+		{"update_issue missing all fields", "update_issue", map[string]interface{}{"display_id": "DGR-42"}},
 		{"publish missing type", "publish", map[string]interface{}{"title": "t", "body": "b", "project_id": float64(1)}},
 		{"publish missing project_id", "publish", map[string]interface{}{"type": "adr", "title": "t", "body": "b"}},
 	}
