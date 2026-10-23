@@ -78,7 +78,7 @@ func queryParent(ctx context.Context, pool poolIface, parentID *int, workspaceID
 		baseQuery := `
 			SELECT i.id, i.display_id, it.name, i.title, i.body, i.status, i.parent_id, i.project_id, i.workspace_id
 			FROM issues i
-			JOIN issue_types it ON i.issue_type_id = it.id 
+			JOIN issue_types it ON i.issue_type_id = it.id
 			WHERE i.id = $1 AND i.workspace_id = $2
 		`
 
@@ -181,7 +181,7 @@ func queryRelatedIssues(ctx context.Context, pool poolIface, issueID int, worksp
 	baseQuery := `
 		SELECT i.display_id, i.title, r.name
 		FROM issue_relations ir
-		JOIN relations r ON r.id = ir.relation_id 
+		JOIN relations r ON r.id = ir.relation_id
 		JOIN issues i ON i.id = ir.target_issue_id
 		WHERE ir.source_issue_id = $1 AND i.workspace_id = $2
 	`
@@ -223,7 +223,7 @@ func GetIssueContext(ctx context.Context, pool poolIface, displayID string, work
 	err := pool.QueryRow(ctx, `
 		SELECT i.id, i.display_id, it.name, i.title, i.body, i.status, i.parent_id, i.project_id, i.workspace_id
 		FROM issues i
-		JOIN issue_types it ON i.issue_type_id = it.id 
+		JOIN issue_types it ON i.issue_type_id = it.id
 		WHERE display_id = $1 AND i.workspace_id = $2
 	`, displayID, workspaceID).
 		Scan(
@@ -407,14 +407,77 @@ func AddIssueRelation(ctx context.Context, pool poolIface, sourceID int, targetI
 	}
 
 	_, err := pool.Exec(ctx, `
-				INSERT INTO issue_relations (source_issue_id, target_issue_id, relation_id)
-				VALUES
-					($1, $2, (SELECT id FROM relations WHERE name = $3)),
-					($2, $1, (SELECT id FROM relations WHERE name = $4))
-			`, sourceID, targetID, relationType, RelationInverse[relationType])
+			INSERT INTO issue_relations (source_issue_id, target_issue_id, relation_id)
+			VALUES
+				($1, $2, (SELECT id FROM relations WHERE name = $3)),
+				($2, $1, (SELECT id FROM relations WHERE name = $4))
+		`, sourceID, targetID, relationType, RelationInverse[relationType])
 
 	if err != nil {
 		return fmt.Errorf("inserting issue relations: %w", err)
+	}
+
+	return nil
+}
+
+func UpdateIssue(ctx context.Context, pool poolIface, req UpdateIssueRequest, displayID string, workspaceID int, authProjectID *int) error {
+	// First, check if the issue exists and belongs to the project (if scoped)
+	var issueProjectID int
+
+	checkQuery := `
+		SELECT project_id FROM issues
+		WHERE display_id = $1 AND workspace_id = $2
+	`
+
+	// Always query without project filter first
+	err := pool.QueryRow(ctx, checkQuery, displayID, workspaceID).Scan(&issueProjectID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrIssueNotFound
+		}
+		return fmt.Errorf("checking issue project: %w", err)
+	}
+
+	// If we have an auth project ID, verify it matches
+	if authProjectID != nil && issueProjectID != *authProjectID {
+		return ErrProjectIDMismatch
+	}
+
+	// Now perform the update
+	var result pgconn.CommandTag
+
+	baseQuery := `
+		UPDATE issues
+		SET title = COALESCE($1, title),
+		    body = COALESCE($2, body),
+		    status = COALESCE($3, status)
+		WHERE display_id = $4
+		AND workspace_id = $5
+	`
+
+	var titlePtr, bodyPtr, statusPtr any
+	if req.Title != nil {
+		titlePtr = *req.Title
+	}
+	if req.Body != nil {
+		bodyPtr = *req.Body
+	}
+	if req.Status != nil {
+		statusPtr = *req.Status
+	}
+
+	if authProjectID != nil {
+		result, err = pool.Exec(ctx, baseQuery+" AND project_id = $6", titlePtr, bodyPtr, statusPtr, displayID, workspaceID, *authProjectID)
+	} else {
+		result, err = pool.Exec(ctx, baseQuery, titlePtr, bodyPtr, statusPtr, displayID, workspaceID)
+	}
+
+	if err != nil {
+		return fmt.Errorf("updating issue: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return ErrIssueNotFound
 	}
 
 	return nil

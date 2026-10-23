@@ -73,6 +73,7 @@ type ToolService interface {
 	GetDoc(ctx context.Context, displayID string) (ToolResult, error)
 	ListIssues(ctx context.Context, status string) (ToolResult, error)
 	UpdateIssueStatus(ctx context.Context, displayID string, newStatus string) (ToolResult, error)
+	UpdateIssue(ctx context.Context, displayID string, req issues.UpdateIssueRequest) (ToolResult, error)
 	Publish(ctx context.Context, req publish.PublishRequest) (ToolResult, error)
 	AddIssueRelation(ctx context.Context, req issues.AddIssueRelationRequest) (ToolResult, error)
 }
@@ -234,6 +235,32 @@ func ListTools() []ToolDefinition {
 					},
 				},
 				Required: []string{"type", "title", "body", "project_id"},
+			},
+		},
+		{
+			Name:        "update_issue",
+			Description: "Update an issue's title, body, and/or status by display ID. At least one field is required. For status-only updates, prefer the cheaper update_issue_status tool.",
+			InputSchema: InputSchema{
+				Type: "object",
+				Properties: map[string]PropertySchema{
+					"display_id": {
+						Type:        "string",
+						Description: "Issue display ID (e.g. DGR-42)",
+					},
+					"title": {
+						Type:        "string",
+						Description: "New title for the issue",
+					},
+					"body": {
+						Type:        "string",
+						Description: "New body for the issue (markdown)",
+					},
+					"status": {
+						Type:        "string",
+						Description: "New status (open, in-progress, in-review, done, closed)",
+					},
+				},
+				Required: []string{"display_id"},
 			},
 		},
 	}

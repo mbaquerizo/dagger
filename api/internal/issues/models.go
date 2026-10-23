@@ -54,3 +54,9 @@ type AddIssueRelationRequest struct {
 	TargetID     int    `json:"targetId"`
 	RelationType string `json:"relationType"`
 }
+
+type UpdateIssueRequest struct {
+	Title  *string `json:"title,omitempty"`
+	Body   *string `json:"body,omitempty"`
+	Status *string `json:"status,omitempty"`
+}

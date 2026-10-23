@@ -32,3 +32,27 @@ func ValidateStatus(status string) error {
 		return ErrInvalidStatus
 	}
 }
+
+var ErrNoFieldsToUpdate = errors.New("at least one of title, body, or status must be provided")
+
+func ValidateUpdateIssueRequest(req UpdateIssueRequest) error {
+	if req.Title == nil && req.Body == nil && req.Status == nil {
+		return ErrNoFieldsToUpdate
+	}
+
+	if req.Title != nil && *req.Title == "" {
+		return errors.New("title cannot be empty")
+	}
+
+	if req.Body != nil && *req.Body == "" {
+		return errors.New("body cannot be empty")
+	}
+
+	if req.Status != nil {
+		if err := ValidateStatus(*req.Status); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

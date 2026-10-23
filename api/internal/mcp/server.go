@@ -363,6 +363,61 @@ func (s *Server) handleToolCall(ctx context.Context, req Request) Response {
 			ID:      req.ID,
 			Result:  result,
 		}
+	case "update_issue":
+		displayID, ok := args["display_id"].(string)
+
+		if !ok || displayID == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: display_id"},
+			}
+		}
+
+		title, _ := args["title"].(string)
+		body, _ := args["body"].(string)
+		status, _ := args["status"].(string)
+
+		if title == "" && body == "" && status == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "at least one of title, body, or status must be provided"},
+			}
+		}
+
+		var titlePtr, bodyPtr, statusPtr *string
+		if title != "" {
+			titlePtr = &title
+		}
+		if body != "" {
+			bodyPtr = &body
+		}
+		if status != "" {
+			statusPtr = &status
+		}
+
+		updateReq := issues.UpdateIssueRequest{
+			Title:  titlePtr,
+			Body:   bodyPtr,
+			Status: statusPtr,
+		}
+
+		result, err := s.service.UpdateIssue(ctx, displayID, updateReq)
+
+		if err != nil {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInternal, Message: err.Error()},
+			}
+		}
+
+		return Response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Result:  result,
+		}
 	case "add_issue_relation":
 		sourceID, ok := args["source_id"].(float64)
 
