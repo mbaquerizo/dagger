@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 
+	"github.com/mbaquerizo/dagger/internal/docs"
 	"github.com/mbaquerizo/dagger/internal/issues"
 	"github.com/mbaquerizo/dagger/internal/publish"
 )
@@ -74,6 +75,7 @@ type ToolService interface {
 	ListIssues(ctx context.Context, status string) (ToolResult, error)
 	UpdateIssueStatus(ctx context.Context, displayID string, newStatus string) (ToolResult, error)
 	UpdateIssue(ctx context.Context, displayID string, req issues.UpdateIssueRequest) (ToolResult, error)
+	UpdateDoc(ctx context.Context, displayID string, req docs.UpdateDocRequest) (ToolResult, error)
 	Publish(ctx context.Context, req publish.PublishRequest) (ToolResult, error)
 	AddIssueRelation(ctx context.Context, req issues.AddIssueRelationRequest) (ToolResult, error)
 }
@@ -258,6 +260,32 @@ func ListTools() []ToolDefinition {
 					"status": {
 						Type:        "string",
 						Description: "New status (open, in-progress, in-review, done, closed)",
+					},
+				},
+				Required: []string{"display_id"},
+			},
+		},
+		{
+			Name:        "update_doc",
+			Description: "Update a doc's title, body, and/or status by display ID. At least one field is required. Valid doc statuses: proposed, approved, superseded, rejected.",
+			InputSchema: InputSchema{
+				Type: "object",
+				Properties: map[string]PropertySchema{
+					"display_id": {
+						Type:        "string",
+						Description: "Doc display ID (e.g. DGR-3)",
+					},
+					"title": {
+						Type:        "string",
+						Description: "New title for the doc",
+					},
+					"body": {
+						Type:        "string",
+						Description: "New body for the doc (markdown)",
+					},
+					"status": {
+						Type:        "string",
+						Description: "New status (proposed, approved, superseded, rejected)",
 					},
 				},
 				Required: []string{"display_id"},
