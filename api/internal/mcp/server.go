@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 
+	"github.com/mbaquerizo/dagger/internal/docs"
 	"github.com/mbaquerizo/dagger/internal/issues"
 	"github.com/mbaquerizo/dagger/internal/publish"
 )
@@ -404,6 +405,61 @@ func (s *Server) handleToolCall(ctx context.Context, req Request) Response {
 		}
 
 		result, err := s.service.UpdateIssue(ctx, displayID, updateReq)
+
+		if err != nil {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInternal, Message: err.Error()},
+			}
+		}
+
+		return Response{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Result:  result,
+		}
+	case "update_doc":
+		displayID, ok := args["display_id"].(string)
+
+		if !ok || displayID == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "missing or invalid parameter: display_id"},
+			}
+		}
+
+		title, _ := args["title"].(string)
+		body, _ := args["body"].(string)
+		status, _ := args["status"].(string)
+
+		if title == "" && body == "" && status == "" {
+			return Response{
+				JSONRPC: "2.0",
+				ID:      req.ID,
+				Error:   &Error{Code: ErrCodeInvalidParams, Message: "at least one of title, body, or status must be provided"},
+			}
+		}
+
+		var titlePtr, bodyPtr, statusPtr *string
+		if title != "" {
+			titlePtr = &title
+		}
+		if body != "" {
+			bodyPtr = &body
+		}
+		if status != "" {
+			statusPtr = &status
+		}
+
+		updateReq := docs.UpdateDocRequest{
+			Title:  titlePtr,
+			Body:   bodyPtr,
+			Status: statusPtr,
+		}
+
+		result, err := s.service.UpdateDoc(ctx, displayID, updateReq)
 
 		if err != nil {
 			return Response{

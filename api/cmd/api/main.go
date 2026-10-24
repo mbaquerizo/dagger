@@ -53,6 +53,8 @@ func main() {
 
 	r.Get("/api/v1/agent/docs/{displayId}", docs.NewGetDocHandler(pool))
 
+	r.Patch("/api/v1/docs/{displayId}", docs.NewUpdateDocHandler(pool))
+
 	r.Post("/api/v1/agent/mcp", mcp.NewMCPHandler(pool, baseURL))
 
 	r.Get("/api/v1/issues", issues.NewListIssuesHandler(pool))

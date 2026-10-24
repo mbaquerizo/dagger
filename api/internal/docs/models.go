@@ -22,3 +22,9 @@ type Doc struct {
 	WorkspaceID int
 	Parent      *ParentDoc
 }
+
+type UpdateDocRequest struct {
+	Title  *string `json:"title,omitempty"`
+	Body   *string `json:"body,omitempty"`
+	Status *string `json:"status,omitempty"`
+}
