@@ -1,0 +1,38 @@
+name: ci-app
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/ci-app.yml']
+  pull_request:
+    branches: [main]
+    paths: ['app/**', '.github/workflows/ci-app.yml']
+
+defaults:
+  run:
+    working-directory: ./app
+
+jobs:
+  ci-app:
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_URL: https://api.example.invalid
+      VITE_SUPABASE_URL: https://example.supabase.invalid
+      VITE_SUPABASE_ANON_KEY: placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: install
+        run: npm ci
+      - name: typecheck
+        run: npm run typecheck
+      - name: check
+        run: npm run check-ci
+      - name: test
+        run: npm run test
+      - name: build
+        run: npm run build
